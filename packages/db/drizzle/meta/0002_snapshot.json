@@ -1,5 +1,5 @@
 {
-  "id": "e113b781-365b-47f2-9ddf-3bfe553d880b",
+  "id": "ea60515d-f0f6-47c0-bde3-d459c0e1af7a",
   "prevId": "ceb0cf7d-5a37-4964-b9ed-8efc9742de7f",
   "version": "7",
   "dialect": "postgresql",
@@ -513,12 +513,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "commit_sha": {
-          "name": "commit_sha",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "status": {
           "name": "status",
           "type": "document_status",
@@ -659,6 +653,93 @@
         "specs_author_id_users_id_fk": {
           "name": "specs_author_id_users_id_fk",
           "tableFrom": "specs",
+          "tableTo": "users",
+          "columnsFrom": [
+            "author_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.plans": {
+      "name": "plans",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "issue_id": {
+          "name": "issue_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "author_id": {
+          "name": "author_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "document_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'draft'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "plans_issue_id_issues_id_fk": {
+          "name": "plans_issue_id_issues_id_fk",
+          "tableFrom": "plans",
+          "tableTo": "issues",
+          "columnsFrom": [
+            "issue_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "plans_author_id_users_id_fk": {
+          "name": "plans_author_id_users_id_fk",
+          "tableFrom": "plans",
           "tableTo": "users",
           "columnsFrom": [
             "author_id"

@@ -5,6 +5,7 @@ import { schema } from '@sdlc-ai/db';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { syncLabelsToGitHub } from '@/lib/github-sync';
+import { hasPermission, getUserRole } from '@/lib/roles';
 
 const statusLabels: Record<string, string> = {
   triage: 'คัดแยก', intent_draft: 'ร่าง Intent', intent_approved: 'Intent อนุมัติ',
@@ -19,6 +20,7 @@ export default async function IssueDetailPage({
 }) {
   const session = await auth();
   if (!session?.user?.id) redirect('/login');
+  const role = getUserRole(session);
 
   const { id } = await params;
 
@@ -63,10 +65,27 @@ export default async function IssueDetailPage({
     .where(eq(schema.intents.issueId, id))
     .orderBy(desc(schema.intents.createdAt));
 
+  // Get plans for this issue
+  const issuePlans = await db
+    .select({
+      id: schema.plans.id,
+      status: schema.plans.status,
+      authorName: schema.users.name,
+      createdAt: schema.plans.createdAt,
+    })
+    .from(schema.plans)
+    .leftJoin(schema.users, eq(schema.plans.authorId, schema.users.id))
+    .where(eq(schema.plans.issueId, id))
+    .orderBy(desc(schema.plans.createdAt));
+
+  // Check if issue has an approved spec (needed to show plan section)
+  const hasApprovedSpec = issueIntents.some((intent) => intent.status === 'approved');
+
   async function updateIssue(formData: FormData) {
     'use server';
     const session = await auth();
     if (!session?.user?.id) redirect('/login');
+    if (!hasPermission(getUserRole(session), 'issue.triage')) throw new Error('ไม่มีสิทธิ์');
 
     const updates: Record<string, unknown> = {};
     const changes: Record<string, unknown> = {};
@@ -126,6 +145,7 @@ export default async function IssueDetailPage({
       </div>
 
       {/* Triage section */}
+      {hasPermission(role, 'issue.triage') && (
       <div className="mt-8 rounded border p-4">
         <h2 className="mb-4 text-lg font-semibold">คัดแยก (Triage)</h2>
         <form action={updateIssue} className="grid grid-cols-2 gap-4">
@@ -174,11 +194,12 @@ export default async function IssueDetailPage({
           </div>
         </form>
       </div>
+      )}
       {/* Intent section */}
       <div className="mt-8 rounded border p-4">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold">Intent</h2>
-          {issueIntents.length === 0 && (
+          {issueIntents.length === 0 && hasPermission(role, 'intent.create') && (
             <Link
               href={`/issues/${id}/intent/new`}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
@@ -215,6 +236,50 @@ export default async function IssueDetailPage({
           <p className="text-sm text-gray-500">ยังไม่มี intent</p>
         )}
       </div>
+
+      {/* Plan section — show when spec is approved */}
+      {(issue.status === 'spec_approved' || issue.status === 'in_progress' || issue.status === 'review' || issue.status === 'done' || issuePlans.length > 0) && (
+        <div className="mt-8 rounded border p-4">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-semibold">แผนการแก้โค้ด</h2>
+            {issuePlans.length === 0 && (
+              <Link
+                href={`/issues/${id}/plan/new`}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
+              >
+                สร้างแผน
+              </Link>
+            )}
+          </div>
+          {issuePlans.length > 0 ? (
+            <div className="space-y-2">
+              {issuePlans.map((plan) => (
+                <Link
+                  key={plan.id}
+                  href={`/issues/${id}/plan/${plan.id}`}
+                  className="flex items-center justify-between rounded border p-3 text-sm hover:bg-gray-50"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className={`rounded px-2 py-0.5 text-xs font-medium ${
+                      plan.status === 'approved' ? 'bg-green-100 text-green-800' :
+                      plan.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                      'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {plan.status === 'approved' ? 'อนุมัติ' : plan.status === 'rejected' ? 'ปฏิเสธ' : 'ร่าง'}
+                    </span>
+                    <span className="text-gray-600">โดย {plan.authorName ?? 'ไม่ระบุ'}</span>
+                  </div>
+                  <span className="text-xs text-gray-400">
+                    {new Date(plan.createdAt).toLocaleString('th-TH')}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">ยังไม่มีแผน</p>
+          )}
+        </div>
+      )}
     </main>
   );
 }

@@ -5,6 +5,7 @@ import { schema } from '@sdlc-ai/db';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { syncNewIssueToGitHub } from '@/lib/github-sync';
+import { hasPermission, getUserRole } from '@/lib/roles';
 
 export default async function NewIssuePage() {
   const session = await auth();
@@ -14,6 +15,7 @@ export default async function NewIssuePage() {
     'use server';
     const session = await auth();
     if (!session?.user?.id) redirect('/login');
+    if (!hasPermission(getUserRole(session), 'issue.create')) throw new Error('ไม่มีสิทธิ์');
 
     const title = (formData.get('title') as string)?.trim();
     const body = (formData.get('body') as string)?.trim() || null;

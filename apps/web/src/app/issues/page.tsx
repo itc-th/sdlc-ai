@@ -4,6 +4,7 @@ import { schema } from '@sdlc-ai/db';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { hasPermission, getUserRole } from '@/lib/roles';
 
 const statusLabels: Record<string, string> = {
   triage: 'คัดแยก',
@@ -54,6 +55,7 @@ export default async function IssuesPage({
 }) {
   const session = await auth();
   if (!session?.user) redirect('/login');
+  const role = getUserRole(session);
 
   const params = await searchParams;
   const conditions = [];
@@ -81,12 +83,14 @@ export default async function IssuesPage({
     <main className="mx-auto max-w-5xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Issues</h1>
-        <Link
-          href="/issues/new"
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
-        >
-          สร้างเรื่องใหม่
-        </Link>
+        {hasPermission(role, 'issue.create') && (
+          <Link
+            href="/issues/new"
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
+          >
+            สร้างเรื่องใหม่
+          </Link>
+        )}
       </div>
 
       {/* Filters */}
