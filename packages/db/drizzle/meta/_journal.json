@@ -8,6 +8,13 @@
       "when": 1794849341837,
       "tag": "0000_safe_sunspot",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794852893982,
+      "tag": "0001_secret_sheva_callister",
+      "breakpoints": true
     }
   ]
 }
