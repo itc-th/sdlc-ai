@@ -1,0 +1,163 @@
+import Link from 'next/link';
+import { redirect, notFound } from 'next/navigation';
+import { eq } from 'drizzle-orm';
+import { schema } from '@sdlc-ai/db';
+import { db } from '@/lib/db';
+import { auth } from '@/lib/auth';
+
+const statusLabels: Record<string, string> = {
+  triage: 'คัดแยก', intent_draft: 'ร่าง Intent', intent_approved: 'Intent อนุมัติ',
+  spec_draft: 'ร่าง Spec', spec_approved: 'Spec อนุมัติ', in_progress: 'กำลังพัฒนา',
+  review: 'รีวิว', done: 'เสร็จ', cancelled: 'ยกเลิก',
+};
+
+export default async function IssueDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const session = await auth();
+  if (!session?.user?.id) redirect('/login');
+
+  const { id } = await params;
+
+  const issues = await db
+    .select({
+      id: schema.issues.id,
+      githubIssueNumber: schema.issues.githubIssueNumber,
+      title: schema.issues.title,
+      body: schema.issues.body,
+      type: schema.issues.type,
+      riskLevel: schema.issues.riskLevel,
+      status: schema.issues.status,
+      assigneeId: schema.issues.assigneeId,
+      assigneeName: schema.users.name,
+      createdAt: schema.issues.createdAt,
+      updatedAt: schema.issues.updatedAt,
+    })
+    .from(schema.issues)
+    .leftJoin(schema.users, eq(schema.issues.assigneeId, schema.users.id))
+    .where(eq(schema.issues.id, id))
+    .limit(1);
+
+  if (issues.length === 0) notFound();
+  const issue = issues[0];
+
+  // Get all users for assignee dropdown
+  const allUsers = await db
+    .select({ id: schema.users.id, name: schema.users.name, role: schema.users.role })
+    .from(schema.users)
+    .orderBy(schema.users.name);
+
+  async function updateIssue(formData: FormData) {
+    'use server';
+    const session = await auth();
+    if (!session?.user?.id) redirect('/login');
+
+    const updates: Record<string, unknown> = {};
+    const changes: Record<string, unknown> = {};
+
+    const type = formData.get('type') as string;
+    const riskLevel = formData.get('riskLevel') as string;
+    const status = formData.get('status') as string;
+    const assigneeId = formData.get('assigneeId') as string;
+
+    if (type !== undefined) { updates.type = type || null; changes.type = type || null; }
+    if (riskLevel !== undefined) { updates.riskLevel = riskLevel || null; changes.riskLevel = riskLevel || null; }
+    if (status) { updates.status = status; changes.status = status; }
+    if (assigneeId !== undefined) { updates.assigneeId = assigneeId || null; changes.assigneeId = assigneeId || null; }
+
+    updates.updatedAt = new Date();
+
+    await db.update(schema.issues).set(updates).where(eq(schema.issues.id, id));
+
+    await db.insert(schema.auditLogs).values({
+      userId: session.user.id,
+      action: 'issue.updated',
+      targetType: 'issue',
+      targetId: id,
+      metadata: changes,
+    });
+
+    redirect(`/issues/${id}`);
+  }
+
+  return (
+    <main className="mx-auto max-w-3xl px-4 py-8">
+      <div className="mb-2">
+        <Link href="/issues" className="text-sm text-blue-600 hover:underline">← กลับไปรายการ</Link>
+      </div>
+      <h1 className="text-2xl font-bold">
+        <span className="text-gray-400">#{issue.githubIssueNumber}</span> {issue.title}
+      </h1>
+      <div className="mt-2 flex gap-2 text-xs">
+        <span className="rounded bg-gray-100 px-2 py-0.5">
+          {statusLabels[issue.status] ?? issue.status}
+        </span>
+        {issue.type && <span className="rounded bg-gray-100 px-2 py-0.5">{issue.type}</span>}
+        {issue.riskLevel && <span className="rounded bg-gray-100 px-2 py-0.5">ความเสี่ยง: {issue.riskLevel}</span>}
+      </div>
+
+      {issue.body && (
+        <div className="mt-6 rounded border p-4 text-sm whitespace-pre-wrap">
+          {issue.body}
+        </div>
+      )}
+
+      <div className="mt-4 text-xs text-gray-500">
+        สร้างเมื่อ {new Date(issue.createdAt).toLocaleString('th-TH')}
+        {issue.assigneeName && <> · ผู้รับผิดชอบ: {issue.assigneeName}</>}
+      </div>
+
+      {/* Triage section */}
+      <div className="mt-8 rounded border p-4">
+        <h2 className="mb-4 text-lg font-semibold">คัดแยก (Triage)</h2>
+        <form action={updateIssue} className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="type" className="mb-1 block text-sm font-medium">ประเภท</label>
+            <select id="type" name="type" defaultValue={issue.type ?? ''} className="w-full rounded border px-3 py-2 text-sm">
+              <option value="">ยังไม่ระบุ</option>
+              <option value="feature">Feature</option>
+              <option value="bug">Bug</option>
+              <option value="data_fix">Data Fix</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="riskLevel" className="mb-1 block text-sm font-medium">ระดับความเสี่ยง</label>
+            <select id="riskLevel" name="riskLevel" defaultValue={issue.riskLevel ?? ''} className="w-full rounded border px-3 py-2 text-sm">
+              <option value="">ยังไม่ระบุ</option>
+              <option value="low">ต่ำ</option>
+              <option value="medium">กลาง</option>
+              <option value="high">สูง</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="status" className="mb-1 block text-sm font-medium">สถานะ</label>
+            <select id="status" name="status" defaultValue={issue.status} className="w-full rounded border px-3 py-2 text-sm">
+              {Object.entries(statusLabels).map(([k, v]) => (
+                <option key={k} value={k}>{v}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="assigneeId" className="mb-1 block text-sm font-medium">ผู้รับผิดชอบ</label>
+            <select id="assigneeId" name="assigneeId" defaultValue={issue.assigneeId ?? ''} className="w-full rounded border px-3 py-2 text-sm">
+              <option value="">ไม่ระบุ</option>
+              {allUsers.map((u) => (
+                <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
+              ))}
+            </select>
+          </div>
+          <div className="col-span-2">
+            <button
+              type="submit"
+              className="rounded-lg bg-gray-900 px-6 py-2 text-sm font-medium text-white hover:bg-gray-800"
+            >
+              บันทึก
+            </button>
+          </div>
+        </form>
+      </div>
+    </main>
+  );
+}

@@ -22,6 +22,7 @@ pnpm test             # test ทุก package (turbo)
 # Database (packages/db)
 pnpm --filter @sdlc-ai/db db:generate   # สร้าง migration จาก schema
 pnpm --filter @sdlc-ai/db db:migrate    # รัน migration กับฐานข้อมูล
+pnpm --filter @sdlc-ai/db db:seed      # สร้าง default project (ครั้งแรก)
 ```
 
 ## กระบวนการ (ห้ามข้ามขั้น)

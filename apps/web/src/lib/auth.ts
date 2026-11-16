@@ -1,10 +1,9 @@
 import NextAuth from 'next-auth';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { eq } from 'drizzle-orm';
-import { createDb, schema } from '@sdlc-ai/db';
+import { schema } from '@sdlc-ai/db';
+import { db } from './db';
 import { authConfig } from './auth.config';
-
-const db = createDb(process.env.DATABASE_URL!);
 
 const adapter = DrizzleAdapter(db, {
   usersTable: schema.users,
