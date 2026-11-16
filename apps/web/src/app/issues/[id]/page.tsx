@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect, notFound } from 'next/navigation';
-import { eq } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import { schema } from '@sdlc-ai/db';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
@@ -49,6 +49,19 @@ export default async function IssueDetailPage({
     .select({ id: schema.users.id, name: schema.users.name, role: schema.users.role })
     .from(schema.users)
     .orderBy(schema.users.name);
+
+  // Get intents for this issue
+  const issueIntents = await db
+    .select({
+      id: schema.intents.id,
+      status: schema.intents.status,
+      authorName: schema.users.name,
+      createdAt: schema.intents.createdAt,
+    })
+    .from(schema.intents)
+    .leftJoin(schema.users, eq(schema.intents.authorId, schema.users.id))
+    .where(eq(schema.intents.issueId, id))
+    .orderBy(desc(schema.intents.createdAt));
 
   async function updateIssue(formData: FormData) {
     'use server';
@@ -160,6 +173,47 @@ export default async function IssueDetailPage({
             </button>
           </div>
         </form>
+      </div>
+      {/* Intent section */}
+      <div className="mt-8 rounded border p-4">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Intent</h2>
+          {issueIntents.length === 0 && (
+            <Link
+              href={`/issues/${id}/intent/new`}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
+            >
+              สร้าง Intent
+            </Link>
+          )}
+        </div>
+        {issueIntents.length > 0 ? (
+          <div className="space-y-2">
+            {issueIntents.map((intent) => (
+              <Link
+                key={intent.id}
+                href={`/issues/${id}/intent/${intent.id}`}
+                className="flex items-center justify-between rounded border p-3 text-sm hover:bg-gray-50"
+              >
+                <div className="flex items-center gap-3">
+                  <span className={`rounded px-2 py-0.5 text-xs font-medium ${
+                    intent.status === 'approved' ? 'bg-green-100 text-green-800' :
+                    intent.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                    'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {intent.status === 'approved' ? 'อนุมัติ' : intent.status === 'rejected' ? 'ปฏิเสธ' : 'ร่าง'}
+                  </span>
+                  <span className="text-gray-600">โดย {intent.authorName ?? 'ไม่ระบุ'}</span>
+                </div>
+                <span className="text-xs text-gray-400">
+                  {new Date(intent.createdAt).toLocaleString('th-TH')}
+                </span>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500">ยังไม่มี intent</p>
+        )}
       </div>
     </main>
   );

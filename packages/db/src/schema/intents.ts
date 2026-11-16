@@ -9,7 +9,8 @@ export const intents = pgTable('intents', {
     .notNull()
     .references(() => issues.id),
   authorId: uuid('author_id').references(() => users.id),
-  filePath: text('file_path').notNull(),
+  content: text('content'),
+  filePath: text('file_path'),
   status: documentStatusEnum('status').notNull().default('draft'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
