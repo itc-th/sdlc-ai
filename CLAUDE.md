@@ -18,6 +18,10 @@ pnpm build            # build ทุก package (turbo)
 pnpm dev              # เปิด dev server ของ apps/web
 pnpm lint             # lint ทุก package (turbo)
 pnpm test             # test ทุก package (turbo)
+
+# Database (packages/db)
+pnpm --filter @sdlc-ai/db db:generate   # สร้าง migration จาก schema
+pnpm --filter @sdlc-ai/db db:migrate    # รัน migration กับฐานข้อมูล
 ```
 
 ## กระบวนการ (ห้ามข้ามขั้น)
