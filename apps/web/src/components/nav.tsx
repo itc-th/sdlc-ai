@@ -13,9 +13,14 @@ export async function Nav() {
             SDLC-AI
           </Link>
           {session && (
-            <Link href="/issues" className="text-sm text-gray-600 hover:text-gray-900">
-              Issues
-            </Link>
+            <>
+              <Link href="/dashboard" className="text-sm text-gray-600 hover:text-gray-900">
+                Dashboard
+              </Link>
+              <Link href="/issues" className="text-sm text-gray-600 hover:text-gray-900">
+                Issues
+              </Link>
+            </>
           )}
         </div>
         {session && user && (
