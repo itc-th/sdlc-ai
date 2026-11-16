@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm';
 import { schema } from '@sdlc-ai/db';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { AiDraftButton } from '@/components/ai-draft-button';
 
 export default async function NewIntentPage({
   params,
@@ -23,6 +24,7 @@ export default async function NewIntentPage({
 
   if (issues.length === 0) notFound();
   const issue = issues[0];
+  const aiEnabled = !!process.env.ANTHROPIC_API_KEY;
 
   async function createIntent(formData: FormData) {
     'use server';
@@ -69,9 +71,18 @@ export default async function NewIntentPage({
       <h1 className="mb-6 text-2xl font-bold">สร้าง Intent</h1>
       <form action={createIntent} className="flex flex-col gap-4">
         <div>
-          <label htmlFor="content" className="mb-1 block text-sm font-medium">
-            เนื้อหา <span className="text-red-500">*</span>
-          </label>
+          <div className="mb-1 flex items-center justify-between">
+            <label htmlFor="content" className="text-sm font-medium">
+              เนื้อหา <span className="text-red-500">*</span>
+            </label>
+            {aiEnabled && (
+              <AiDraftButton
+                endpoint="/api/ai/draft-intent"
+                payload={{ issueId: id }}
+                textareaId="content"
+              />
+            )}
+          </div>
           <textarea
             id="content"
             name="content"

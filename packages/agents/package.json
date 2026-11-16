@@ -10,6 +10,9 @@
     "build": "tsc",
     "lint": "eslint src/"
   },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39"
+  },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^22",
