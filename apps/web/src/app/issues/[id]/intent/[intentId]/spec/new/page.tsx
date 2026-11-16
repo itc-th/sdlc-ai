@@ -5,6 +5,7 @@ import { schema } from '@sdlc-ai/db';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { hasPermission, getUserRole } from '@/lib/roles';
+import { AiDraftButton } from '@/components/ai-draft-button';
 
 export default async function NewSpecPage({
   params,
@@ -36,6 +37,8 @@ export default async function NewSpecPage({
   if (intents.length === 0 || intents[0].issueId !== id || intents[0].status !== 'approved') {
     notFound();
   }
+
+  const aiEnabled = !!process.env.ANTHROPIC_API_KEY;
 
   async function createSpec(formData: FormData) {
     'use server';
@@ -83,9 +86,18 @@ export default async function NewSpecPage({
       <h1 className="mb-6 text-2xl font-bold">สร้าง Spec</h1>
       <form action={createSpec} className="flex flex-col gap-4">
         <div>
-          <label htmlFor="content" className="mb-1 block text-sm font-medium">
-            เนื้อหา <span className="text-red-500">*</span>
-          </label>
+          <div className="mb-1 flex items-center justify-between">
+            <label htmlFor="content" className="text-sm font-medium">
+              เนื้อหา <span className="text-red-500">*</span>
+            </label>
+            {aiEnabled && (
+              <AiDraftButton
+                endpoint="/api/ai/draft-spec"
+                payload={{ intentId }}
+                textareaId="content"
+              />
+            )}
+          </div>
           <textarea
             id="content"
             name="content"

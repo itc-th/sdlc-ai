@@ -12,6 +12,7 @@
   "dependencies": {
     "@auth/core": "^0.41.3",
     "@auth/drizzle-adapter": "^1.11.3",
+    "@sdlc-ai/agents": "workspace:^",
     "@sdlc-ai/db": "workspace:^",
     "@sdlc-ai/github": "workspace:^",
     "drizzle-orm": "^0.38",
