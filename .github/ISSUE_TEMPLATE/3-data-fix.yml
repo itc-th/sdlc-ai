@@ -1,0 +1,45 @@
+name: "ขอแก้ไขข้อมูล"
+description: "แก้ไขข้อมูลในฐานข้อมูลโดยไม่เปลี่ยนโปรแกรม"
+title: "[Data] "
+labels: ["type:data-fix", "status:triage"]
+body:
+  - type: markdown
+    attributes:
+      value: "งานแก้ข้อมูลต้องมีผู้อนุมัติและหลักฐานอ้างอิงทุกครั้ง"
+  - type: dropdown
+    id: system
+    attributes:
+      label: "ระบบย่อยที่เกี่ยวข้อง"
+      options: ["apps/web", "packages/db", "packages/github", "packages/agents", "docs", "ไม่แน่ใจ"]
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: "ข้อมูลที่ต้องแก้"
+      description: "ระบุรหัสโครงการ/รายการ ค่าปัจจุบัน และค่าที่ถูกต้อง"
+    validations:
+      required: true
+  - type: textarea
+    id: reason
+    attributes:
+      label: "เหตุผลและหลักฐานอ้างอิง"
+      description: "เช่น เลขหนังสือ บันทึกข้อความ อีเมลจากเจ้าของข้อมูล"
+    validations:
+      required: true
+  - type: input
+    id: count
+    attributes:
+      label: "จำนวนรายการโดยประมาณ"
+  - type: input
+    id: approver
+    attributes:
+      label: "ผู้อนุมัติฝั่งเจ้าของข้อมูล"
+    validations:
+      required: true
+  - type: input
+    id: requester
+    attributes:
+      label: "ผู้ขอ / หน่วยงาน"
+    validations:
+      required: true

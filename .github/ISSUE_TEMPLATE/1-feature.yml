@@ -1,0 +1,58 @@
+name: "ขอฟีเจอร์ใหม่ / ปรับปรุงระบบ"
+description: "คำขอเพิ่มหรือเปลี่ยนความสามารถของ SDLC"
+title: "[Feature] "
+labels: ["type:feature", "status:triage"]
+body:
+  - type: markdown
+    attributes:
+      value: "กรอกเท่าที่ทราบ ทีมพัฒนาจะถามเพิ่มในขั้น triage ก่อนร่าง intent"
+  - type: dropdown
+    id: system
+    attributes:
+      label: "ระบบย่อยที่เกี่ยวข้อง"
+      options: ["apps/web", "packages/db", "packages/github", "packages/agents", "docs", "ไม่แน่ใจ"]
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: "ปัญหาหรือความต้องการ"
+      description: "ตอนนี้เกิดอะไรขึ้น หรือทำอะไรไม่ได้"
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: "ทำไมต้องทำ"
+      description: "ผลกระทบถ้าไม่ทำ ใครได้ประโยชน์ มีมติ/หนังสือ/นโยบายอ้างอิงหรือไม่"
+    validations:
+      required: true
+  - type: textarea
+    id: users
+    attributes:
+      label: "ผู้ใช้ที่เกี่ยวข้อง"
+      description: "บทบาท เช่น นักวิจัย หน่วยงาน ผู้ดูแลระบบ และจำนวนโดยประมาณ"
+  - type: textarea
+    id: done
+    attributes:
+      label: "ผลลัพธ์ที่ต้องการ (เกณฑ์ว่าเสร็จ)"
+      description: "เขียนเป็นข้อที่ตรวจสอบได้"
+  - type: checkboxes
+    id: risk
+    attributes:
+      label: "งานนี้แตะสิ่งต่อไปนี้หรือไม่"
+      options:
+        - label: "ข้อมูลส่วนบุคคล"
+        - label: "สิทธิ์ผู้ใช้ / การยืนยันตัวตน"
+        - label: "โครงสร้างฐานข้อมูล"
+        - label: "ข้อมูลงบประมาณ"
+  - type: input
+    id: due
+    attributes:
+      label: "กำหนดที่ต้องใช้งาน (ถ้ามี)"
+  - type: input
+    id: requester
+    attributes:
+      label: "ผู้ขอ / หน่วยงาน"
+    validations:
+      required: true

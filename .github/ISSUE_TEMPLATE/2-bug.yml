@@ -1,0 +1,56 @@
+name: "แจ้งข้อผิดพลาด (Bug)"
+description: "ระบบทำงานไม่ถูกต้อง"
+title: "[Bug] "
+labels: ["type:bug", "status:triage"]
+body:
+  - type: dropdown
+    id: system
+    attributes:
+      label: "ระบบย่อยที่เกี่ยวข้อง"
+      options: ["apps/web", "packages/db", "packages/github", "packages/agents", "docs", "ไม่แน่ใจ"]
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: "ความรุนแรง"
+      options:
+        - "สูง: ใช้งานไม่ได้ หรือข้อมูลผิด/สูญหาย"
+        - "กลาง: ใช้งานได้บางส่วน มีทางเลี่ยง"
+        - "ต่ำ: แสดงผลผิดเล็กน้อย"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: "ขั้นตอนที่ทำให้เกิด"
+      placeholder: "1. เข้าหน้า...\n2. กด...\n3. พบว่า..."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: "ผลที่ควรเกิด"
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: "ผลที่เกิดจริง"
+      description: "แนบภาพหน้าจอหรือข้อความ error ได้ ห้ามใส่รหัสผ่านหรือข้อมูลส่วนบุคคล"
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: "URL / หน้าจอ / บัญชีที่พบ (บทบาทผู้ใช้)"
+  - type: input
+    id: when
+    attributes:
+      label: "วันเวลาที่พบ"
+  - type: input
+    id: requester
+    attributes:
+      label: "ผู้แจ้ง / หน่วยงาน"
+    validations:
+      required: true
