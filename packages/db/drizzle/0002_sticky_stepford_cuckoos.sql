@@ -1,0 +1,1 @@
+ALTER TABLE "intents" ADD COLUMN "commit_sha" text;
