@@ -3,6 +3,7 @@ import { eq, desc, and, sql } from 'drizzle-orm';
 import { schema } from '@sdlc-ai/db';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { hasPermission, getUserRole } from '@/lib/roles';
 import { syncNewIssueToGitHub } from '@/lib/github-sync';
 
 export async function GET(request: NextRequest) {
@@ -44,6 +45,9 @@ export async function POST(request: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  if (!hasPermission(getUserRole(session), 'issue.create')) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   const body = await request.json();
