@@ -5,6 +5,7 @@ import { schema } from '@sdlc-ai/db';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { hasPermission, getUserRole } from '@/lib/roles';
+import { syncSpecToGitHub } from '@/lib/github-sync';
 
 const decisionLabels: Record<string, string> = {
   approved: 'อนุมัติ',
@@ -138,6 +139,11 @@ export default async function SpecDetailPage({
       targetId: specId,
       metadata: { issueId: id, intentId, decision, comment },
     });
+
+    // Sync approved spec to GitHub repo
+    if (decision === 'approved') {
+      await syncSpecToGitHub(specId);
+    }
 
     redirect(`/issues/${id}/intent/${intentId}/spec/${specId}`);
   }

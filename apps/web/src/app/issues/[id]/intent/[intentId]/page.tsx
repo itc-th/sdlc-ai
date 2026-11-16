@@ -5,6 +5,7 @@ import { schema } from '@sdlc-ai/db';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { hasPermission, getUserRole } from '@/lib/roles';
+import { syncIntentToGitHub } from '@/lib/github-sync';
 
 const decisionLabels: Record<string, string> = {
   approved: 'อนุมัติ',
@@ -151,6 +152,11 @@ export default async function IntentDetailPage({
       targetId: intentId,
       metadata: { issueId: id, decision, comment },
     });
+
+    // Sync approved intent to GitHub repo
+    if (decision === 'approved') {
+      await syncIntentToGitHub(intentId);
+    }
 
     redirect(`/issues/${id}/intent/${intentId}`);
   }

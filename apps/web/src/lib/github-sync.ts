@@ -5,6 +5,7 @@ import {
   createGitHubIssue,
   updateGitHubIssueLabels,
   dbToGitHubLabels,
+  commitFileToRepo,
 } from '@sdlc-ai/github';
 import { db } from './db';
 import { githubApp } from './github';
@@ -94,5 +95,120 @@ export async function syncLabelsToGitHub(issueId: string) {
     });
   } catch (error) {
     console.error('Failed to sync labels to GitHub:', error);
+  }
+}
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9ก-๙]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 60);
+}
+
+/**
+ * After approving an intent, commit its content to the GitHub repo.
+ * Returns { filePath, commitSha } or null on failure.
+ */
+export async function syncIntentToGitHub(
+  intentId: string,
+): Promise<{ filePath: string; commitSha: string } | null> {
+  if (!githubApp) return null;
+
+  try {
+    const rows = await db
+      .select({
+        content: schema.intents.content,
+        issueNumber: schema.issues.githubIssueNumber,
+        issueTitle: schema.issues.title,
+        githubOwner: schema.projects.githubOwner,
+        githubRepo: schema.projects.githubRepo,
+      })
+      .from(schema.intents)
+      .innerJoin(schema.issues, eq(schema.intents.issueId, schema.issues.id))
+      .innerJoin(schema.projects, eq(schema.issues.projectId, schema.projects.id))
+      .where(eq(schema.intents.id, intentId))
+      .limit(1);
+
+    if (rows.length === 0 || !rows[0].content) return null;
+    const row = rows[0];
+    const content = row.content!;
+
+    const year = new Date().getFullYear();
+    const slug = slugify(row.issueTitle);
+    const filePath = `docs/intents/${year}-${row.issueNumber}-${slug}/intent.md`;
+
+    const octokit = await getInstallationOctokit(githubApp, row.githubOwner, row.githubRepo);
+    const { sha } = await commitFileToRepo(octokit, {
+      owner: row.githubOwner,
+      repo: row.githubRepo,
+      path: filePath,
+      content,
+      message: `docs: add intent for #${row.issueNumber}`,
+    });
+
+    await db
+      .update(schema.intents)
+      .set({ filePath, commitSha: sha, updatedAt: new Date() })
+      .where(eq(schema.intents.id, intentId));
+
+    return { filePath, commitSha: sha };
+  } catch (error) {
+    console.error('Failed to sync intent to GitHub:', error);
+    return null;
+  }
+}
+
+/**
+ * After approving a spec, commit its content to the GitHub repo.
+ * Returns { filePath, commitSha } or null on failure.
+ */
+export async function syncSpecToGitHub(
+  specId: string,
+): Promise<{ filePath: string; commitSha: string } | null> {
+  if (!githubApp) return null;
+
+  try {
+    const rows = await db
+      .select({
+        content: schema.specs.content,
+        issueNumber: schema.issues.githubIssueNumber,
+        issueTitle: schema.issues.title,
+        githubOwner: schema.projects.githubOwner,
+        githubRepo: schema.projects.githubRepo,
+      })
+      .from(schema.specs)
+      .innerJoin(schema.intents, eq(schema.specs.intentId, schema.intents.id))
+      .innerJoin(schema.issues, eq(schema.intents.issueId, schema.issues.id))
+      .innerJoin(schema.projects, eq(schema.issues.projectId, schema.projects.id))
+      .where(eq(schema.specs.id, specId))
+      .limit(1);
+
+    if (rows.length === 0 || !rows[0].content) return null;
+    const row = rows[0];
+    const content = row.content!;
+
+    const year = new Date().getFullYear();
+    const slug = slugify(row.issueTitle);
+    const filePath = `docs/intents/${year}-${row.issueNumber}-${slug}/spec.md`;
+
+    const octokit = await getInstallationOctokit(githubApp, row.githubOwner, row.githubRepo);
+    const { sha } = await commitFileToRepo(octokit, {
+      owner: row.githubOwner,
+      repo: row.githubRepo,
+      path: filePath,
+      content,
+      message: `docs: add spec for #${row.issueNumber}`,
+    });
+
+    await db
+      .update(schema.specs)
+      .set({ filePath, commitSha: sha, updatedAt: new Date() })
+      .where(eq(schema.specs.id, specId));
+
+    return { filePath, commitSha: sha };
+  } catch (error) {
+    console.error('Failed to sync spec to GitHub:', error);
+    return null;
   }
 }
