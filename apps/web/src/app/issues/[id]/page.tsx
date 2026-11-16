@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm';
 import { schema } from '@sdlc-ai/db';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { syncLabelsToGitHub } from '@/lib/github-sync';
 
 const statusLabels: Record<string, string> = {
   triage: 'คัดแยก', intent_draft: 'ร่าง Intent', intent_approved: 'Intent อนุมัติ',
@@ -78,6 +79,8 @@ export default async function IssueDetailPage({
       targetId: id,
       metadata: changes,
     });
+
+    await syncLabelsToGitHub(id);
 
     redirect(`/issues/${id}`);
   }
