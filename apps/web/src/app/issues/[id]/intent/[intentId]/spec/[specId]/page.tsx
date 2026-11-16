@@ -4,6 +4,7 @@ import { eq, desc } from 'drizzle-orm';
 import { schema } from '@sdlc-ai/db';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { hasPermission, getUserRole } from '@/lib/roles';
 
 const decisionLabels: Record<string, string> = {
   approved: 'อนุมัติ',
@@ -65,10 +66,13 @@ export default async function SpecDetailPage({
     .where(eq(schema.approvals.targetId, specId))
     .orderBy(desc(schema.approvals.createdAt));
 
+  const role = getUserRole(session);
+
   async function updateSpec(formData: FormData) {
     'use server';
     const session = await auth();
     if (!session?.user?.id) redirect('/login');
+    if (!hasPermission(getUserRole(session), 'spec.update')) throw new Error('ไม่มีสิทธิ์');
 
     const content = (formData.get('content') as string)?.trim();
     if (!content || content.length > 50000) throw new Error('invalid content');
@@ -93,6 +97,7 @@ export default async function SpecDetailPage({
     'use server';
     const session = await auth();
     if (!session?.user?.id) redirect('/login');
+    if (!hasPermission(getUserRole(session), 'spec.review')) throw new Error('ไม่มีสิทธิ์');
 
     const decision = formData.get('decision') as string;
     const comment = (formData.get('comment') as string)?.trim() || null;
@@ -160,7 +165,7 @@ export default async function SpecDetailPage({
       </div>
 
       {/* Content / Edit form */}
-      {spec.status === 'draft' ? (
+      {spec.status === 'draft' && hasPermission(role, 'spec.update') ? (
         <form action={updateSpec} className="mt-6">
           <label htmlFor="content" className="mb-1 block text-sm font-medium">เนื้อหา</label>
           <textarea
@@ -186,7 +191,7 @@ export default async function SpecDetailPage({
       )}
 
       {/* Review section — show when draft */}
-      {spec.status === 'draft' && (
+      {spec.status === 'draft' && hasPermission(role, 'spec.review') && (
         <div className="mt-8 rounded border p-4">
           <h2 className="mb-4 text-lg font-semibold">ตรวจสอบ</h2>
           <form action={reviewSpec} className="flex flex-col gap-3">

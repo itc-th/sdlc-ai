@@ -5,6 +5,7 @@ import { schema } from '@sdlc-ai/db';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { syncLabelsToGitHub } from '@/lib/github-sync';
+import { hasPermission, getUserRole } from '@/lib/roles';
 
 const statusLabels: Record<string, string> = {
   triage: 'คัดแยก', intent_draft: 'ร่าง Intent', intent_approved: 'Intent อนุมัติ',
@@ -19,6 +20,7 @@ export default async function IssueDetailPage({
 }) {
   const session = await auth();
   if (!session?.user?.id) redirect('/login');
+  const role = getUserRole(session);
 
   const { id } = await params;
 
@@ -67,6 +69,7 @@ export default async function IssueDetailPage({
     'use server';
     const session = await auth();
     if (!session?.user?.id) redirect('/login');
+    if (!hasPermission(getUserRole(session), 'issue.triage')) throw new Error('ไม่มีสิทธิ์');
 
     const updates: Record<string, unknown> = {};
     const changes: Record<string, unknown> = {};
@@ -126,6 +129,7 @@ export default async function IssueDetailPage({
       </div>
 
       {/* Triage section */}
+      {hasPermission(role, 'issue.triage') && (
       <div className="mt-8 rounded border p-4">
         <h2 className="mb-4 text-lg font-semibold">คัดแยก (Triage)</h2>
         <form action={updateIssue} className="grid grid-cols-2 gap-4">
@@ -174,11 +178,12 @@ export default async function IssueDetailPage({
           </div>
         </form>
       </div>
+      )}
       {/* Intent section */}
       <div className="mt-8 rounded border p-4">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold">Intent</h2>
-          {issueIntents.length === 0 && (
+          {issueIntents.length === 0 && hasPermission(role, 'intent.create') && (
             <Link
               href={`/issues/${id}/intent/new`}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"

@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import { schema } from '@sdlc-ai/db';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { hasPermission, getUserRole } from '@/lib/roles';
 import { syncLabelsToGitHub } from '@/lib/github-sync';
 
 export async function GET(
@@ -51,6 +52,9 @@ export async function PATCH(
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  if (!hasPermission(getUserRole(session), 'issue.triage')) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   const { id } = await params;
