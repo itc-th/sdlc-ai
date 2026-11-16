@@ -4,6 +4,7 @@ import { eq, and, sql } from 'drizzle-orm';
 import { schema } from '@sdlc-ai/db';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { syncNewIssueToGitHub } from '@/lib/github-sync';
 
 export default async function NewIssuePage() {
   const session = await auth();
@@ -54,6 +55,8 @@ export default async function NewIssuePage() {
       targetId: created.id,
       metadata: { title: created.title, issueNumber: nextNumber },
     });
+
+    await syncNewIssueToGitHub(created.id);
 
     redirect(`/issues/${created.id}`);
   }

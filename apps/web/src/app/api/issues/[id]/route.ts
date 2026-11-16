@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import { schema } from '@sdlc-ai/db';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { syncLabelsToGitHub } from '@/lib/github-sync';
 
 export async function GET(
   _request: NextRequest,
@@ -135,6 +136,8 @@ export async function PATCH(
     targetId: id,
     metadata: changes,
   });
+
+  await syncLabelsToGitHub(id);
 
   return NextResponse.json(updated);
 }

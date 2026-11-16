@@ -3,6 +3,7 @@ import { eq, desc, and, sql } from 'drizzle-orm';
 import { schema } from '@sdlc-ai/db';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { syncNewIssueToGitHub } from '@/lib/github-sync';
 
 export async function GET(request: NextRequest) {
   const session = await auth();
@@ -105,6 +106,8 @@ export async function POST(request: NextRequest) {
     targetId: created.id,
     metadata: { title: created.title, issueNumber: nextNumber },
   });
+
+  await syncNewIssueToGitHub(created.id);
 
   return NextResponse.json(created, { status: 201 });
 }
