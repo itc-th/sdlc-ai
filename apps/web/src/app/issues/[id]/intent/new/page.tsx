@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm';
 import { schema } from '@sdlc-ai/db';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { hasPermission, getUserRole } from '@/lib/roles';
 import { AiDraftButton } from '@/components/ai-draft-button';
 
 export default async function NewIntentPage({
@@ -30,6 +31,7 @@ export default async function NewIntentPage({
     'use server';
     const session = await auth();
     if (!session?.user?.id) redirect('/login');
+    if (!hasPermission(getUserRole(session), 'intent.create')) throw new Error('ไม่มีสิทธิ์');
 
     const content = (formData.get('content') as string)?.trim();
     if (!content || content.length > 50000) throw new Error('invalid content');

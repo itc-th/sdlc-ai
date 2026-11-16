@@ -4,6 +4,8 @@ import { eq, desc } from 'drizzle-orm';
 import { schema } from '@sdlc-ai/db';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { hasPermission, getUserRole } from '@/lib/roles';
+import { syncIntentToGitHub } from '@/lib/github-sync';
 
 const decisionLabels: Record<string, string> = {
   approved: 'อนุมัติ',
@@ -78,10 +80,13 @@ export default async function IntentDetailPage({
     .where(eq(schema.specs.intentId, intentId))
     .orderBy(desc(schema.specs.createdAt));
 
+  const role = getUserRole(session);
+
   async function updateIntent(formData: FormData) {
     'use server';
     const session = await auth();
     if (!session?.user?.id) redirect('/login');
+    if (!hasPermission(getUserRole(session), 'intent.update')) throw new Error('ไม่มีสิทธิ์');
 
     const content = (formData.get('content') as string)?.trim();
     if (!content || content.length > 50000) throw new Error('invalid content');
@@ -106,6 +111,7 @@ export default async function IntentDetailPage({
     'use server';
     const session = await auth();
     if (!session?.user?.id) redirect('/login');
+    if (!hasPermission(getUserRole(session), 'intent.review')) throw new Error('ไม่มีสิทธิ์');
 
     const decision = formData.get('decision') as string;
     const comment = (formData.get('comment') as string)?.trim() || null;
@@ -147,6 +153,11 @@ export default async function IntentDetailPage({
       metadata: { issueId: id, decision, comment },
     });
 
+    // Sync approved intent to GitHub repo
+    if (decision === 'approved') {
+      await syncIntentToGitHub(intentId);
+    }
+
     redirect(`/issues/${id}/intent/${intentId}`);
   }
 
@@ -173,7 +184,7 @@ export default async function IntentDetailPage({
       </div>
 
       {/* Content / Edit form */}
-      {intent.status === 'draft' ? (
+      {intent.status === 'draft' && hasPermission(role, 'intent.update') ? (
         <form action={updateIntent} className="mt-6">
           <label htmlFor="content" className="mb-1 block text-sm font-medium">เนื้อหา</label>
           <textarea
@@ -199,7 +210,7 @@ export default async function IntentDetailPage({
       )}
 
       {/* Review section — show when draft */}
-      {intent.status === 'draft' && (
+      {intent.status === 'draft' && hasPermission(role, 'intent.review') && (
         <div className="mt-8 rounded border p-4">
           <h2 className="mb-4 text-lg font-semibold">ตรวจสอบ</h2>
           <form action={reviewIntent} className="flex flex-col gap-3">
@@ -249,7 +260,7 @@ export default async function IntentDetailPage({
         <div className="mt-8 rounded border p-4">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold">Spec</h2>
-            {intentSpecs.length === 0 && (
+            {intentSpecs.length === 0 && hasPermission(role, 'spec.create') && (
               <Link
                 href={`/issues/${id}/intent/${intentId}/spec/new`}
                 className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"

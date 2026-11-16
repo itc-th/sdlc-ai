@@ -15,6 +15,20 @@
       "when": 1794852893982,
       "tag": "0001_secret_sheva_callister",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794854457504,
+      "tag": "0002_youthful_lionheart",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794855065304,
+      "tag": "0003_sticky_stepford_cuckoos",
+      "breakpoints": true
     }
   ]
 }
