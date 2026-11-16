@@ -5,6 +5,8 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowJs": true,
+    "declaration": false,
+    "declarationMap": false,
     "noEmit": true,
     "incremental": true,
     "plugins": [

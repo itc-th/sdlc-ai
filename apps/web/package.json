@@ -10,7 +10,12 @@
     "start": "next start"
   },
   "dependencies": {
+    "@auth/core": "^0.41.3",
+    "@auth/drizzle-adapter": "^1.11.3",
+    "@sdlc-ai/db": "workspace:^",
+    "drizzle-orm": "^0.38",
     "next": "^15",
+    "next-auth": "5.0.0-beta.32",
     "react": "^19",
     "react-dom": "^19"
   },
