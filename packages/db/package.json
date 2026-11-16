@@ -10,7 +10,8 @@
     "build": "tsc",
     "lint": "eslint src/",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "tsx src/seed.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.38",
@@ -21,6 +22,7 @@
     "@types/node": "^22",
     "drizzle-kit": "^0.30",
     "eslint": "^9",
+    "tsx": "^4.23.15",
     "typescript": "^5",
     "typescript-eslint": "^8.72.2"
   }
