@@ -10,7 +10,15 @@
 - Agent ออกแบบและคำสั่งของ agent: `packages/agents`
 - ภาษาในเอกสารและหน้าจอ: ไทย ชื่อในโค้ด: อังกฤษ
 
-คำสั่ง build, test และ lint จะเพิ่มในไฟล์นี้เมื่อสร้างโครงโค้ดในระยะ 0
+## คำสั่งที่ใช้บ่อย
+
+```bash
+pnpm install          # ติดตั้ง dependencies ทั้ง monorepo
+pnpm build            # build ทุก package (turbo)
+pnpm dev              # เปิด dev server ของ apps/web
+pnpm lint             # lint ทุก package (turbo)
+pnpm test             # test ทุก package (turbo)
+```
 
 ## กระบวนการ (ห้ามข้ามขั้น)
 

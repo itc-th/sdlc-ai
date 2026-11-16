@@ -1,0 +1,27 @@
+{
+  "name": "@sdlc-ai/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint src/",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.38",
+    "postgres": "^3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^22",
+    "drizzle-kit": "^0.30",
+    "eslint": "^9",
+    "typescript": "^5",
+    "typescript-eslint": "^8.72.2"
+  }
+}
