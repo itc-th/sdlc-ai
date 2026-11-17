@@ -8,7 +8,7 @@ import {
   commitFileToRepo,
 } from '@sdlc-ai/github';
 import { db } from './db';
-import { githubApp } from './github';
+import { getGitHubApp } from './github';
 
 /**
  * After creating an issue in DB, sync it to GitHub.
@@ -16,6 +16,7 @@ import { githubApp } from './github';
  * Returns silently on failure (graceful degradation).
  */
 export async function syncNewIssueToGitHub(issueId: string) {
+  const githubApp = getGitHubApp();
   if (!githubApp) return;
 
   try {
@@ -64,6 +65,7 @@ export async function syncNewIssueToGitHub(issueId: string) {
  * Returns silently on failure (graceful degradation).
  */
 export async function syncLabelsToGitHub(issueId: string) {
+  const githubApp = getGitHubApp();
   if (!githubApp) return;
 
   try {
@@ -113,6 +115,7 @@ function slugify(text: string): string {
 export async function syncIntentToGitHub(
   intentId: string,
 ): Promise<{ filePath: string; commitSha: string } | null> {
+  const githubApp = getGitHubApp();
   if (!githubApp) return null;
 
   try {
@@ -166,6 +169,7 @@ export async function syncIntentToGitHub(
 export async function syncSpecToGitHub(
   specId: string,
 ): Promise<{ filePath: string; commitSha: string } | null> {
+  const githubApp = getGitHubApp();
   if (!githubApp) return null;
 
   try {
