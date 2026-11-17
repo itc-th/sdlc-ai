@@ -28,7 +28,10 @@ export async function draftIssue(params: {
   });
 
   const textBlock = response.content.find((b) => b.type === 'text');
-  const text = textBlock?.text ?? '{}';
+  let text = textBlock?.text ?? '{}';
+
+  // Strip markdown code fences if present
+  text = text.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
 
   try {
     return JSON.parse(text);
