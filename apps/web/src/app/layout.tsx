@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Nav } from '@/components/nav';
+import { Sidebar } from '@/components/sidebar';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -10,9 +10,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="th">
-      <body>
-        <Nav />
-        {children}
+      <body className="flex h-screen overflow-hidden">
+        <Sidebar />
+        <div className="flex-1 overflow-y-auto">{children}</div>
       </body>
     </html>
   );
