@@ -22,7 +22,7 @@ export async function draftIssue(params: {
 
   const response = await client.messages.create({
     model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 1000,
+    max_tokens: 4000,
     system: SYSTEM_PROMPT,
     messages: [{ role: 'user', content: params.description }],
   });
@@ -36,6 +36,14 @@ export async function draftIssue(params: {
   try {
     return JSON.parse(text);
   } catch {
-    return { title: '', body: text, type: 'feature' };
+    // Fallback: extract fields with regex from partial/broken JSON
+    const titleMatch = text.match(/"title"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+    const typeMatch = text.match(/"type"\s*:\s*"(feature|bug|data_fix)"/);
+    const bodyMatch = text.match(/"body"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+    return {
+      title: titleMatch ? JSON.parse(`"${titleMatch[1]}"`) : '',
+      body: bodyMatch ? JSON.parse(`"${bodyMatch[1]}"`) : text,
+      type: typeMatch?.[1] ?? 'feature',
+    };
   }
 }
