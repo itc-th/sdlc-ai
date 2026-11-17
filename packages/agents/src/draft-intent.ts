@@ -21,7 +21,7 @@ export async function draftIntent(params: {
   const userMessage = `Issue: ${params.issueTitle}${params.issueBody ? `\n\nรายละเอียด:\n${params.issueBody}` : ''}`;
 
   const response = await client.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-5-20250929',
     max_tokens: 2000,
     system: SYSTEM_PROMPT,
     messages: [{ role: 'user', content: userMessage }],
