@@ -23,49 +23,45 @@ export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user) redirect('/login');
 
-  // Count by status
-  const statusCounts = await db
-    .select({
-      status: schema.issues.status,
-      count: sql<number>`count(*)::int`,
-    })
-    .from(schema.issues)
-    .groupBy(schema.issues.status);
-
-  // Count by type
-  const typeCounts = await db
-    .select({
-      type: schema.issues.type,
-      count: sql<number>`count(*)::int`,
-    })
-    .from(schema.issues)
-    .where(sql`${schema.issues.type} IS NOT NULL`)
-    .groupBy(schema.issues.type);
-
-  // Count by risk
-  const riskCounts = await db
-    .select({
-      riskLevel: schema.issues.riskLevel,
-      count: sql<number>`count(*)::int`,
-    })
-    .from(schema.issues)
-    .where(sql`${schema.issues.riskLevel} IS NOT NULL`)
-    .groupBy(schema.issues.riskLevel);
-
-  // Pending issues
-  const pendingIssues = await db
-    .select({
-      id: schema.issues.id,
-      githubIssueNumber: schema.issues.githubIssueNumber,
-      title: schema.issues.title,
-      status: schema.issues.status,
-      type: schema.issues.type,
-      createdAt: schema.issues.createdAt,
-    })
-    .from(schema.issues)
-    .where(inArray(schema.issues.status, ['triage', 'in_progress']))
-    .orderBy(schema.issues.createdAt)
-    .limit(10);
+  // Run all queries in parallel
+  const [statusCounts, typeCounts, riskCounts, pendingIssues] = await Promise.all([
+    db
+      .select({
+        status: schema.issues.status,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(schema.issues)
+      .groupBy(schema.issues.status),
+    db
+      .select({
+        type: schema.issues.type,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(schema.issues)
+      .where(sql`${schema.issues.type} IS NOT NULL`)
+      .groupBy(schema.issues.type),
+    db
+      .select({
+        riskLevel: schema.issues.riskLevel,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(schema.issues)
+      .where(sql`${schema.issues.riskLevel} IS NOT NULL`)
+      .groupBy(schema.issues.riskLevel),
+    db
+      .select({
+        id: schema.issues.id,
+        githubIssueNumber: schema.issues.githubIssueNumber,
+        title: schema.issues.title,
+        status: schema.issues.status,
+        type: schema.issues.type,
+        createdAt: schema.issues.createdAt,
+      })
+      .from(schema.issues)
+      .where(inArray(schema.issues.status, ['triage', 'in_progress']))
+      .orderBy(schema.issues.createdAt)
+      .limit(10),
+  ]);
 
   const totalIssues = statusCounts.reduce((sum, r) => sum + r.count, 0);
 

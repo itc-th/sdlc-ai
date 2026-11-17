@@ -25,59 +25,56 @@ export default async function IssueDetailPage({
 
   const { id } = await params;
 
-  const issues = await db
-    .select({
-      id: schema.issues.id,
-      githubIssueNumber: schema.issues.githubIssueNumber,
-      title: schema.issues.title,
-      body: schema.issues.body,
-      type: schema.issues.type,
-      riskLevel: schema.issues.riskLevel,
-      status: schema.issues.status,
-      assigneeId: schema.issues.assigneeId,
-      assigneeName: schema.users.name,
-      createdAt: schema.issues.createdAt,
-      updatedAt: schema.issues.updatedAt,
-    })
-    .from(schema.issues)
-    .leftJoin(schema.users, eq(schema.issues.assigneeId, schema.users.id))
-    .where(eq(schema.issues.id, id))
-    .limit(1);
+  // Run all queries in parallel
+  const [issues, allUsers, issueIntents, issuePlans] = await Promise.all([
+    db
+      .select({
+        id: schema.issues.id,
+        githubIssueNumber: schema.issues.githubIssueNumber,
+        title: schema.issues.title,
+        body: schema.issues.body,
+        type: schema.issues.type,
+        riskLevel: schema.issues.riskLevel,
+        status: schema.issues.status,
+        assigneeId: schema.issues.assigneeId,
+        assigneeName: schema.users.name,
+        createdAt: schema.issues.createdAt,
+        updatedAt: schema.issues.updatedAt,
+      })
+      .from(schema.issues)
+      .leftJoin(schema.users, eq(schema.issues.assigneeId, schema.users.id))
+      .where(eq(schema.issues.id, id))
+      .limit(1),
+    db
+      .select({ id: schema.users.id, name: schema.users.name, role: schema.users.role })
+      .from(schema.users)
+      .orderBy(schema.users.name),
+    db
+      .select({
+        id: schema.intents.id,
+        status: schema.intents.status,
+        authorName: schema.users.name,
+        createdAt: schema.intents.createdAt,
+      })
+      .from(schema.intents)
+      .leftJoin(schema.users, eq(schema.intents.authorId, schema.users.id))
+      .where(eq(schema.intents.issueId, id))
+      .orderBy(desc(schema.intents.createdAt)),
+    db
+      .select({
+        id: schema.plans.id,
+        status: schema.plans.status,
+        authorName: schema.users.name,
+        createdAt: schema.plans.createdAt,
+      })
+      .from(schema.plans)
+      .leftJoin(schema.users, eq(schema.plans.authorId, schema.users.id))
+      .where(eq(schema.plans.issueId, id))
+      .orderBy(desc(schema.plans.createdAt)),
+  ]);
 
   if (issues.length === 0) notFound();
   const issue = issues[0];
-
-  // Get all users for assignee dropdown
-  const allUsers = await db
-    .select({ id: schema.users.id, name: schema.users.name, role: schema.users.role })
-    .from(schema.users)
-    .orderBy(schema.users.name);
-
-  // Get intents for this issue
-  const issueIntents = await db
-    .select({
-      id: schema.intents.id,
-      status: schema.intents.status,
-      authorName: schema.users.name,
-      createdAt: schema.intents.createdAt,
-    })
-    .from(schema.intents)
-    .leftJoin(schema.users, eq(schema.intents.authorId, schema.users.id))
-    .where(eq(schema.intents.issueId, id))
-    .orderBy(desc(schema.intents.createdAt));
-
-  // Get plans for this issue
-  const issuePlans = await db
-    .select({
-      id: schema.plans.id,
-      status: schema.plans.status,
-      authorName: schema.users.name,
-      createdAt: schema.plans.createdAt,
-    })
-    .from(schema.plans)
-    .leftJoin(schema.users, eq(schema.plans.authorId, schema.users.id))
-    .where(eq(schema.plans.issueId, id))
-    .orderBy(desc(schema.plans.createdAt));
 
   // Check if issue has an approved spec (needed to show plan section)
   const hasApprovedSpec = issueIntents.some((intent) => intent.status === 'approved');
