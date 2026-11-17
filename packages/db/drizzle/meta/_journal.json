@@ -29,6 +29,13 @@
       "when": 1794855065304,
       "tag": "0003_sticky_stepford_cuckoos",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794954971837,
+      "tag": "0004_foamy_exodus",
+      "breakpoints": true
     }
   ]
 }

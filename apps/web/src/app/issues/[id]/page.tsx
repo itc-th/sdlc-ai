@@ -7,6 +7,7 @@ import { auth } from '@/lib/auth';
 import { syncLabelsToGitHub } from '@/lib/github-sync';
 import { hasPermission, getUserRole } from '@/lib/roles';
 import { AiTriageButton } from '@/components/ai-triage-button';
+import { GitHubSyncButton } from '@/components/github-sync-button';
 
 const statusLabels: Record<string, string> = {
   triage: 'คัดแยก', intent_draft: 'ร่าง Intent', intent_approved: 'Intent อนุมัติ',
@@ -38,6 +39,7 @@ export default async function IssueDetailPage({
         status: schema.issues.status,
         assigneeId: schema.issues.assigneeId,
         assigneeName: schema.users.name,
+        githubIssueUrl: schema.issues.githubIssueUrl,
         createdAt: schema.issues.createdAt,
         updatedAt: schema.issues.updatedAt,
       })
@@ -120,9 +122,12 @@ export default async function IssueDetailPage({
       <div className="mb-2">
         <Link href="/issues" className="text-sm text-blue-600 hover:underline">← กลับไปรายการ</Link>
       </div>
-      <h1 className="text-2xl font-bold">
-        <span className="text-gray-400">#{issue.githubIssueNumber}</span> {issue.title}
-      </h1>
+      <div className="flex items-center gap-3">
+        <h1 className="text-2xl font-bold">
+          <span className="text-gray-400">#{issue.githubIssueNumber}</span> {issue.title}
+        </h1>
+        <GitHubSyncButton issueId={id} githubIssueUrl={issue.githubIssueUrl} />
+      </div>
       <div className="mt-2 flex gap-2 text-xs">
         <span className="rounded bg-gray-100 px-2 py-0.5">
           {statusLabels[issue.status] ?? issue.status}

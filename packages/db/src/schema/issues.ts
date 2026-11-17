@@ -16,6 +16,8 @@ export const issues = pgTable(
     type: issueTypeEnum('type'),
     riskLevel: riskLevelEnum('risk_level'),
     status: issueStatusEnum('status').notNull().default('triage'),
+    githubIssueId: integer('github_issue_id'),
+    githubIssueUrl: text('github_issue_url'),
     reporterGithubLogin: text('reporter_github_login'),
     assigneeId: uuid('assignee_id').references(() => users.id),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
