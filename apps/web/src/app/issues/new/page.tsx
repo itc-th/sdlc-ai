@@ -6,6 +6,7 @@ import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { syncNewIssueToGitHub } from '@/lib/github-sync';
 import { hasPermission, getUserRole } from '@/lib/roles';
+import { AiIssueButton } from '@/components/ai-issue-button';
 
 export default async function NewIssuePage() {
   const session = await auth();
@@ -65,7 +66,10 @@ export default async function NewIssuePage() {
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold">สร้างเรื่องใหม่</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">สร้างเรื่องใหม่</h1>
+        <AiIssueButton />
+      </div>
       <form action={createIssue} className="flex flex-col gap-4">
         <div>
           <label htmlFor="title" className="mb-1 block text-sm font-medium">
