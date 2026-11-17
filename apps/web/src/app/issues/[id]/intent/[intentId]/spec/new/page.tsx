@@ -38,7 +38,7 @@ export default async function NewSpecPage({
     notFound();
   }
 
-  const aiEnabled = !!process.env.ANTHROPIC_API_KEY;
+  // Always show AI button; API will return 503 if key not configured
 
   async function createSpec(formData: FormData) {
     'use server';
@@ -90,13 +90,11 @@ export default async function NewSpecPage({
             <label htmlFor="content" className="text-sm font-medium">
               เนื้อหา <span className="text-red-500">*</span>
             </label>
-            {aiEnabled && (
-              <AiDraftButton
-                endpoint="/api/ai/draft-spec"
-                payload={{ intentId }}
-                textareaId="content"
-              />
-            )}
+            <AiDraftButton
+              endpoint="/api/ai/draft-spec"
+              payload={{ intentId }}
+              textareaId="content"
+            />
           </div>
           <textarea
             id="content"

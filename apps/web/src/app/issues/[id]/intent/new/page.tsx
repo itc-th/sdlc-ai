@@ -25,7 +25,7 @@ export default async function NewIntentPage({
 
   if (issues.length === 0) notFound();
   const issue = issues[0];
-  const aiEnabled = !!process.env.ANTHROPIC_API_KEY;
+  // Always show AI button; API will return 503 if key not configured
 
   async function createIntent(formData: FormData) {
     'use server';
@@ -77,13 +77,11 @@ export default async function NewIntentPage({
             <label htmlFor="content" className="text-sm font-medium">
               เนื้อหา <span className="text-red-500">*</span>
             </label>
-            {aiEnabled && (
-              <AiDraftButton
-                endpoint="/api/ai/draft-intent"
-                payload={{ issueId: id }}
-                textareaId="content"
-              />
-            )}
+            <AiDraftButton
+              endpoint="/api/ai/draft-intent"
+              payload={{ issueId: id }}
+              textareaId="content"
+            />
           </div>
           <textarea
             id="content"
