@@ -4,6 +4,7 @@ import type { NextAuthConfig } from 'next-auth';
 
 export const authConfig = {
   providers: [GitHub, Google],
+  session: { strategy: 'jwt' as const },
   pages: {
     signIn: '/login',
   },

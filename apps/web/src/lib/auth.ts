@@ -16,19 +16,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
   adapter,
   callbacks: {
-    async session({ session, user }) {
-      if (session.user) {
-        session.user.id = user.id;
-
+    async jwt({ token, user }) {
+      if (user) {
+        token.sub = user.id;
         const dbUser = await db
           .select({ role: schema.users.role })
           .from(schema.users)
-          .where(eq(schema.users.id, user.id))
+          .where(eq(schema.users.id, user.id!))
           .limit(1);
-
         if (dbUser[0]) {
-          (session.user as unknown as Record<string, unknown>).role = dbUser[0].role;
+          token.role = dbUser[0].role;
         }
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user && token.sub) {
+        session.user.id = token.sub;
+        (session.user as unknown as Record<string, unknown>).role = token.role;
       }
       return session;
     },
