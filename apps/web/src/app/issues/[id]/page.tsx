@@ -6,6 +6,7 @@ import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { syncLabelsToGitHub } from '@/lib/github-sync';
 import { hasPermission, getUserRole } from '@/lib/roles';
+import { AiTriageButton } from '@/components/ai-triage-button';
 
 const statusLabels: Record<string, string> = {
   triage: 'คัดแยก', intent_draft: 'ร่าง Intent', intent_approved: 'Intent อนุมัติ',
@@ -147,7 +148,10 @@ export default async function IssueDetailPage({
       {/* Triage section */}
       {hasPermission(role, 'issue.triage') && (
       <div className="mt-8 rounded border p-4">
-        <h2 className="mb-4 text-lg font-semibold">คัดแยก (Triage)</h2>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold">คัดแยก (Triage)</h2>
+          <AiTriageButton issueId={id} />
+        </div>
         <form action={updateIssue} className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor="type" className="mb-1 block text-sm font-medium">ประเภท</label>
