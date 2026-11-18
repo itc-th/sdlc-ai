@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { auth, signOut } from '@/lib/auth';
+import { SidebarNav } from './sidebar-nav';
 
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: '📊' },
@@ -26,19 +27,7 @@ export async function Sidebar() {
       {/* Menu */}
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-surface-300">เมนู</p>
-        <ul className="space-y-1">
-          {menuItems.map((item) => (
-            <li key={item.href}>
-              <Link
-                href={item.href}
-                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-surface-700 hover:bg-primary-50 hover:text-primary-700 transition-colors"
-              >
-                <span className="text-base">{item.icon}</span>
-                {item.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <SidebarNav items={menuItems} />
       </nav>
 
       {/* User */}
