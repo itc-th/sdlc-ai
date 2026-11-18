@@ -36,5 +36,6 @@ jobs:
         run: |
           npm i -g vercel
           STAGING_URL=$(vercel deploy --token=${{ secrets.VERCEL_TOKEN }})
+          vercel alias $STAGING_URL sdlc-ai-staging.vercel.app --token=${{ secrets.VERCEL_TOKEN }}
           echo "## 🧪 Staging Deployed" >> $GITHUB_STEP_SUMMARY
-          echo "URL: $STAGING_URL" >> $GITHUB_STEP_SUMMARY
+          echo "URL: https://sdlc-ai-staging.vercel.app" >> $GITHUB_STEP_SUMMARY
