@@ -46,3 +46,27 @@ jobs:
           echo "## 🚀 Production Deployed" >> $GITHUB_STEP_SUMMARY
           echo "Version: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
           echo "URL: https://sdlc-ai-omega.vercel.app" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify Slack
+        if: always()
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            EMOJI="🚀"
+            STATUS="สำเร็จ"
+          else
+            EMOJI="❌"
+            STATUS="ล้มเหลว"
+          fi
+          curl -s -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+            -H 'Content-Type: application/json' \
+            -d "{
+              \"blocks\": [
+                {
+                  \"type\": \"section\",
+                  \"text\": {
+                    \"type\": \"mrkdwn\",
+                    \"text\": \"${EMOJI} *Deploy Production ${STATUS}*\n• Version: \`${{ github.ref_name }}\`\n• By: ${{ github.actor }}\n• <https://sdlc-ai-omega.vercel.app|เปิด Production> · <https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}|Release Notes>\"
+                  }
+                }
+              ]
+            }"
