@@ -36,9 +36,8 @@ jobs:
         run: |
           npm i -g vercel
           STAGING_URL=$(vercel deploy --token=${{ secrets.VERCEL_TOKEN }})
-          vercel alias $STAGING_URL sdlc-ai-staging.vercel.app --scope=${{ secrets.VERCEL_ORG_ID }} --token=${{ secrets.VERCEL_TOKEN }}
           echo "## 🧪 Staging Deployed" >> $GITHUB_STEP_SUMMARY
-          echo "URL: https://sdlc-ai-staging.vercel.app" >> $GITHUB_STEP_SUMMARY
+          echo "URL: $STAGING_URL" >> $GITHUB_STEP_SUMMARY
 
       - name: Notify Slack
         if: always()
@@ -50,6 +49,7 @@ jobs:
             EMOJI="❌"
             STATUS="ล้มเหลว"
           fi
+          COMMIT_MSG=$(echo "${{ github.event.head_commit.message }}" | head -1)
           curl -s -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
             -H 'Content-Type: application/json' \
             -d "{
@@ -58,7 +58,7 @@ jobs:
                   \"type\": \"section\",
                   \"text\": {
                     \"type\": \"mrkdwn\",
-                    \"text\": \"${EMOJI} *Deploy Staging ${STATUS}*\n• Commit: \`${{ github.event.head_commit.message }}\`\n• By: ${{ github.actor }}\n• <https://sdlc-ai-staging.vercel.app|เปิด Staging> · <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|ดู Logs>\"
+                    \"text\": \"${EMOJI} *Deploy Staging ${STATUS}*\n• Commit: \`${COMMIT_MSG}\`\n• By: ${{ github.actor }}\n• <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|ดู Logs>\"
                   }
                 }
               ]
