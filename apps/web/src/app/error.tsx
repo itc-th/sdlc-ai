@@ -1,0 +1,26 @@
+'use client';
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  return (
+    <main className="flex min-h-screen items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-danger-600">เกิดข้อผิดพลาด</h1>
+        <p className="mt-4 text-surface-700">
+          {error.message || 'ระบบเกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง'}
+        </p>
+        <button
+          onClick={reset}
+          className="mt-6 rounded-lg bg-primary-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-primary-700 transition-colors"
+        >
+          ลองใหม่
+        </button>
+      </div>
+    </main>
+  );
+}

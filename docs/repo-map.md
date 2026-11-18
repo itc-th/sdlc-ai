@@ -46,7 +46,10 @@ src/
 │       │   └── draft-spec/route.ts    # POST — AI ร่าง spec
 │       └── webhooks/github/route.ts   # GitHub webhook receiver
 ├── components/
-│   ├── nav.tsx                     # Navigation bar
+│   ├── sidebar.tsx                 # Sidebar (server component: logo, menu, user)
+│   ├── sidebar-nav.tsx             # Client component: active route highlighting
+│   ├── loading-bar.tsx             # Client component: global navigation progress bar
+│   ├── skeleton.tsx                # Skeleton components (Page, Dashboard, Table, Detail, Form)
 │   └── ai-draft-button.tsx         # Client component ปุ่ม "ให้ AI ร่าง"
 ├── lib/
 │   ├── auth.ts / auth.config.ts    # Auth.js v5 config
@@ -90,7 +93,18 @@ src/
 ```
 src/
 ├── draft-intent.ts  # draftIntent() — ร่าง intent ด้วย Claude API
-└── draft-spec.ts    # draftSpec() — ร่าง spec ด้วย Claude API
+├── draft-spec.ts    # draftSpec() — ร่าง spec ด้วย Claude API
+├── draft-plan.ts    # draftPlan() — ร่าง plan ด้วย Claude API + codebase context
+├── draft-issue.ts   # draftIssue() — สร้าง issue ด้วย AI
+└── triage-issue.ts  # triageIssue() — คัดแยก type/risk ด้วย AI
+```
+
+### .claude/skills
+
+```
+skills/
+├── intent/SKILL.md      # /intent <เลข issue> — ร่าง intent.md จาก GitHub issue
+└── implement/SKILL.md   # /implement <เลข issue> — เขียนโค้ดตาม plan → ทดสอบ → เปิด PR
 ```
 
 ## RBAC (Role-Based Access Control)
