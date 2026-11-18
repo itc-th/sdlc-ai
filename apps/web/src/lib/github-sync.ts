@@ -103,9 +103,9 @@ export async function syncLabelsToGitHub(issueId: string) {
 function slugify(text: string): string {
   return text
     .toLowerCase()
-    .replace(/[^a-z0-9ก-๙]+/g, '-')
+    .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
-    .slice(0, 60);
+    .slice(0, 40);
 }
 
 /**
@@ -122,7 +122,7 @@ export async function syncIntentToGitHub(
     const rows = await db
       .select({
         content: schema.intents.content,
-        issueNumber: schema.issues.githubIssueNumber,
+        githubIssueId: schema.issues.githubIssueId,
         issueTitle: schema.issues.title,
         githubOwner: schema.projects.githubOwner,
         githubRepo: schema.projects.githubRepo,
@@ -133,13 +133,13 @@ export async function syncIntentToGitHub(
       .where(eq(schema.intents.id, intentId))
       .limit(1);
 
-    if (rows.length === 0 || !rows[0].content) return null;
+    if (rows.length === 0 || !rows[0].content || !rows[0].githubIssueId) return null;
     const row = rows[0];
     const content = row.content!;
 
     const year = new Date().getFullYear();
     const slug = slugify(row.issueTitle);
-    const filePath = `docs/intents/${year}-${row.issueNumber}-${slug}/intent.md`;
+    const filePath = `docs/intents/${year}-${row.githubIssueId}-${slug}/intent.md`;
 
     const octokit = await getInstallationOctokit(githubApp, row.githubOwner, row.githubRepo);
     const { sha } = await commitFileToRepo(octokit, {
@@ -147,7 +147,7 @@ export async function syncIntentToGitHub(
       repo: row.githubRepo,
       path: filePath,
       content,
-      message: `docs: add intent for #${row.issueNumber}`,
+      message: `docs: add intent for #${row.githubIssueId}`,
     });
 
     await db
@@ -158,6 +158,60 @@ export async function syncIntentToGitHub(
     return { filePath, commitSha: sha };
   } catch (error) {
     console.error('Failed to sync intent to GitHub:', error);
+    return null;
+  }
+}
+
+/**
+ * After approving a plan, commit its content to the GitHub repo.
+ * Returns { filePath, commitSha } or null on failure.
+ */
+export async function syncPlanToGitHub(
+  planId: string,
+): Promise<{ filePath: string; commitSha: string } | null> {
+  const githubApp = getGitHubApp();
+  if (!githubApp) return null;
+
+  try {
+    const rows = await db
+      .select({
+        content: schema.plans.content,
+        githubIssueId: schema.issues.githubIssueId,
+        issueTitle: schema.issues.title,
+        githubOwner: schema.projects.githubOwner,
+        githubRepo: schema.projects.githubRepo,
+      })
+      .from(schema.plans)
+      .innerJoin(schema.issues, eq(schema.plans.issueId, schema.issues.id))
+      .innerJoin(schema.projects, eq(schema.issues.projectId, schema.projects.id))
+      .where(eq(schema.plans.id, planId))
+      .limit(1);
+
+    if (rows.length === 0 || !rows[0].content || !rows[0].githubIssueId) return null;
+    const row = rows[0];
+    const content = row.content!;
+
+    const year = new Date().getFullYear();
+    const slug = slugify(row.issueTitle);
+    const filePath = `docs/intents/${year}-${row.githubIssueId}-${slug}/plan.md`;
+
+    const octokit = await getInstallationOctokit(githubApp, row.githubOwner, row.githubRepo);
+    const { sha } = await commitFileToRepo(octokit, {
+      owner: row.githubOwner,
+      repo: row.githubRepo,
+      path: filePath,
+      content,
+      message: `docs: add plan for #${row.githubIssueId}`,
+    });
+
+    await db
+      .update(schema.plans)
+      .set({ filePath, commitSha: sha, updatedAt: new Date() })
+      .where(eq(schema.plans.id, planId));
+
+    return { filePath, commitSha: sha };
+  } catch (error) {
+    console.error('Failed to sync plan to GitHub:', error);
     return null;
   }
 }
@@ -176,7 +230,7 @@ export async function syncSpecToGitHub(
     const rows = await db
       .select({
         content: schema.specs.content,
-        issueNumber: schema.issues.githubIssueNumber,
+        githubIssueId: schema.issues.githubIssueId,
         issueTitle: schema.issues.title,
         githubOwner: schema.projects.githubOwner,
         githubRepo: schema.projects.githubRepo,
@@ -188,13 +242,13 @@ export async function syncSpecToGitHub(
       .where(eq(schema.specs.id, specId))
       .limit(1);
 
-    if (rows.length === 0 || !rows[0].content) return null;
+    if (rows.length === 0 || !rows[0].content || !rows[0].githubIssueId) return null;
     const row = rows[0];
     const content = row.content!;
 
     const year = new Date().getFullYear();
     const slug = slugify(row.issueTitle);
-    const filePath = `docs/intents/${year}-${row.issueNumber}-${slug}/spec.md`;
+    const filePath = `docs/intents/${year}-${row.githubIssueId}-${slug}/spec.md`;
 
     const octokit = await getInstallationOctokit(githubApp, row.githubOwner, row.githubRepo);
     const { sha } = await commitFileToRepo(octokit, {
@@ -202,7 +256,7 @@ export async function syncSpecToGitHub(
       repo: row.githubRepo,
       path: filePath,
       content,
-      message: `docs: add spec for #${row.issueNumber}`,
+      message: `docs: add spec for #${row.githubIssueId}`,
     });
 
     await db

@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { eq } from 'drizzle-orm';
 import { schema } from '@sdlc-ai/db';
-import { getInstallationOctokit, createGitHubIssue, dbToGitHubLabels } from '@sdlc-ai/github';
+import { getInstallationOctokit, createGitHubIssue, dbToGitHubLabels, commitFilesToRepo, type BatchFile } from '@sdlc-ai/github';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { getGitHubApp } from '@/lib/github';
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 40);
+}
 
 export async function POST(request: NextRequest) {
   const session = await auth();
@@ -57,6 +65,7 @@ export async function POST(request: NextRequest) {
     const octokit = await getInstallationOctokit(githubApp, issue.githubOwner, issue.githubRepo);
     const labels = dbToGitHubLabels({ type: issue.type, riskLevel: issue.riskLevel, status: issue.status });
 
+    // 1. Create GitHub issue
     const { data } = await createGitHubIssue(octokit, {
       owner: issue.githubOwner,
       repo: issue.githubRepo,
@@ -66,15 +75,12 @@ export async function POST(request: NextRequest) {
     });
 
     const githubIssueUrl = data.html_url;
+    const ghNumber = data.number;
 
-    // Update DB with real GitHub issue ID and URL
+    // 2. Update DB with GitHub issue number
     await db
       .update(schema.issues)
-      .set({
-        githubIssueId: data.number,
-        githubIssueUrl,
-        updatedAt: new Date(),
-      })
+      .set({ githubIssueId: ghNumber, githubIssueUrl, updatedAt: new Date() })
       .where(eq(schema.issues.id, issueId));
 
     await db.insert(schema.auditLogs).values({
@@ -82,10 +88,95 @@ export async function POST(request: NextRequest) {
       action: 'issue.synced_to_github',
       targetType: 'issue',
       targetId: issueId,
-      metadata: { githubIssueNumber: data.number, githubIssueUrl },
+      metadata: { githubIssueNumber: ghNumber, githubIssueUrl },
     });
 
-    return NextResponse.json({ githubIssueId: data.number, githubIssueUrl });
+    // 3. Collect approved docs into a single commit
+    const year = new Date().getFullYear();
+    const slug = slugify(issue.title);
+    const folder = `docs/intents/${year}-${ghNumber}-${slug}`;
+    const files: BatchFile[] = [];
+
+    // Track DB updates to apply after commit
+    const dbUpdates: Array<() => Promise<unknown>> = [];
+
+    // Intents
+    const intents = await db
+      .select({ id: schema.intents.id, content: schema.intents.content, status: schema.intents.status })
+      .from(schema.intents)
+      .where(eq(schema.intents.issueId, issueId));
+
+    for (const intent of intents) {
+      if (intent.status === 'approved' && intent.content) {
+        const filePath = `${folder}/intent.md`;
+        files.push({ path: filePath, content: intent.content });
+        dbUpdates.push(() =>
+          db.update(schema.intents).set({ filePath, updatedAt: new Date() }).where(eq(schema.intents.id, intent.id)),
+        );
+      }
+
+      // Specs for this intent
+      const specs = await db
+        .select({ id: schema.specs.id, content: schema.specs.content, status: schema.specs.status })
+        .from(schema.specs)
+        .where(eq(schema.specs.intentId, intent.id));
+
+      for (const spec of specs) {
+        if (spec.status === 'approved' && spec.content) {
+          const filePath = `${folder}/spec.md`;
+          files.push({ path: filePath, content: spec.content });
+          dbUpdates.push(() =>
+            db.update(schema.specs).set({ filePath, updatedAt: new Date() }).where(eq(schema.specs.id, spec.id)),
+          );
+        }
+      }
+    }
+
+    // Plans
+    const plans = await db
+      .select({ id: schema.plans.id, content: schema.plans.content, status: schema.plans.status })
+      .from(schema.plans)
+      .where(eq(schema.plans.issueId, issueId));
+
+    for (const plan of plans) {
+      if (plan.status === 'approved' && plan.content) {
+        const filePath = `${folder}/plan.md`;
+        files.push({ path: filePath, content: plan.content });
+        dbUpdates.push(() =>
+          db.update(schema.plans).set({ filePath, updatedAt: new Date() }).where(eq(schema.plans.id, plan.id)),
+        );
+      }
+    }
+
+    // 4. Commit all files in one commit
+    let commitSha: string | null = null;
+    if (files.length > 0) {
+      const result = await commitFilesToRepo(octokit, {
+        owner: issue.githubOwner,
+        repo: issue.githubRepo,
+        files,
+        message: `docs: add intent/spec/plan for #${ghNumber}`,
+      });
+      commitSha = result.sha;
+
+      // Update DB with file paths and commit SHA
+      for (const update of dbUpdates) {
+        await update();
+      }
+      // Set commitSha on all synced docs
+      if (intents.length > 0) {
+        await db.update(schema.intents).set({ commitSha }).where(eq(schema.intents.issueId, issueId));
+      }
+      if (plans.length > 0) {
+        await db.update(schema.plans).set({ commitSha }).where(eq(schema.plans.issueId, issueId));
+      }
+    }
+
+    return NextResponse.json({
+      githubIssueId: ghNumber,
+      githubIssueUrl,
+      docs: { files: files.map((f) => f.path), commitSha },
+    });
   } catch (error) {
     console.error('Failed to sync issue to GitHub:', error);
     return NextResponse.json({ error: 'Failed to create GitHub issue' }, { status: 500 });

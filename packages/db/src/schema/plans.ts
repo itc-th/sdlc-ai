@@ -10,6 +10,8 @@ export const plans = pgTable('plans', {
     .references(() => issues.id),
   authorId: uuid('author_id').references(() => users.id),
   content: text('content'),
+  filePath: text('file_path'),
+  commitSha: text('commit_sha'),
   status: documentStatusEnum('status').notNull().default('draft'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),

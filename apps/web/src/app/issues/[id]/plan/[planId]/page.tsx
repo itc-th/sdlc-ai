@@ -4,6 +4,7 @@ import { eq, desc } from 'drizzle-orm';
 import { schema } from '@sdlc-ai/db';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { syncPlanToGitHub } from '@/lib/github-sync';
 
 const decisionLabels: Record<string, string> = {
   approved: 'อนุมัติ',
@@ -113,12 +114,13 @@ export default async function PlanDetailPage({
       .set({ status: newStatus as 'draft' | 'approved' | 'rejected', updatedAt: new Date() })
       .where(eq(schema.plans.id, planId));
 
-    // Update issue status when plan approved
+    // Update issue status and sync plan to GitHub when approved
     if (decision === 'approved') {
       await db
         .update(schema.issues)
         .set({ status: 'in_progress', updatedAt: new Date() })
         .where(eq(schema.issues.id, id));
+      await syncPlanToGitHub(planId);
     }
 
     await db.insert(schema.auditLogs).values({

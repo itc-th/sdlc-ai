@@ -7,3 +7,6 @@ dist/
 *.log
 .DS_Store
 .turbo/
+.neon
+.vercel
+.env*

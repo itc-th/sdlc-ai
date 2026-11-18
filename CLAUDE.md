@@ -30,8 +30,42 @@ pnpm --filter @sdlc-ai/db db:seed      # สร้าง default project (คร
 1. ทุกงานเริ่มจาก GitHub issue
 2. เขียน `docs/intents/<ปี>-<เลข issue>-<ชื่อสั้น>/intent.md` และให้คนอนุมัติ
 3. เขียน `spec.md` ในโฟลเดอร์เดียวกัน และให้คนอนุมัติตามระดับความเสี่ยง
-4. เสนอแผนการแก้โค้ด และรอให้ programmer อนุมัติก่อนเขียนโค้ด
-5. เปิด PR ที่อ้างเลข issue ผ่านรายการใน `docs/policies/review-checklist.md`
+4. เสนอแผนการแก้โค้ด (`plan.md`) และรอให้ programmer อนุมัติก่อนเขียนโค้ด
+5. เขียนโค้ดตาม plan → ทดสอบ → เปิด PR ที่อ้างเลข issue
+
+## Skills สำหรับ agent
+
+| คำสั่ง | หน้าที่ | ตัวอย่าง |
+|--------|--------|---------|
+| `/intent <เลข issue>` | ร่าง intent.md จาก GitHub issue | `/intent 26` |
+| `/implement <เลข issue>` | เขียนโค้ดตาม plan → ทดสอบ → เปิด PR | `/implement 26` |
+
+## Workflow สำหรับ dev (ใช้ AI agent)
+
+```
+/intent 26        # ร่าง intent → คนอนุมัติ
+                  # ร่าง spec ผ่าน web app → คนอนุมัติ
+                  # ร่าง plan ผ่าน web app → คนอนุมัติ
+                  # กดปุ่ม "ส่งไป GitHub" ใน web app
+/implement 26     # agent อ่าน plan → เขียนโค้ด → ทดสอบ → เปิด PR
+                  # คน review PR → merge
+```
+
+## ก่อนเขียนโค้ด (บังคับ)
+
+1. อ่าน `docs/repo-map.md` เพื่อเข้าใจโครงสร้าง
+2. อ่าน `docs/intents/<folder>/plan.md` ทำตามนี้เป็นหลัก
+3. อ่านไฟล์จริงที่ plan อ้างอิง ทุกไฟล์
+4. ตรวจว่า framework มี feature อยู่แล้วก่อนเพิ่ม dependency
+5. ถ้า plan ไม่ตรงกับโค้ดจริง → แจ้งผู้ใช้ก่อน ห้ามเปลี่ยนขอบเขตเอง
+
+## ก่อน commit (บังคับ)
+
+```bash
+pnpm build   # ต้องผ่าน
+pnpm lint    # ต้องผ่าน
+pnpm test    # ต้องผ่าน (ถ้ามี)
+```
 
 ## สิ่งที่ agent ห้ามทำ
 
