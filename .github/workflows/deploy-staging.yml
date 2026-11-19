@@ -35,7 +35,7 @@ jobs:
       - name: Deploy to Staging
         run: |
           npm i -g vercel
-          STAGING_URL=$(vercel deploy --token=${{ secrets.VERCEL_TOKEN }})
+          STAGING_URL=$(vercel deploy --force --token=${{ secrets.VERCEL_TOKEN }})
           echo "## 🧪 Staging Deployed" >> $GITHUB_STEP_SUMMARY
           echo "URL: $STAGING_URL" >> $GITHUB_STEP_SUMMARY
 
