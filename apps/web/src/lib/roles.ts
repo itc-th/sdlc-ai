@@ -12,6 +12,7 @@ const PERMISSIONS: Record<string, Role[]> = {
   'plan.create':     ['programmer', 'tech_lead', 'sa', 'admin'],
   'plan.update':     ['programmer', 'tech_lead', 'sa', 'admin'],
   'plan.review':     ['programmer', 'tech_lead', 'sa', 'admin'],
+  'release.deploy':  ['sa', 'tech_lead', 'admin'],
 };
 
 export function hasPermission(role: string | undefined, action: string): boolean {

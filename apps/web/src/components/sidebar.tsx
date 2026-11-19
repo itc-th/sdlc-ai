@@ -6,6 +6,7 @@ const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: '📊' },
   { href: '/issues', label: 'Issues', icon: '📋' },
   { href: '/issues/new', label: 'สร้างเรื่องใหม่', icon: '➕' },
+  { href: '/releases', label: 'Releases', icon: '🚀' },
 ];
 
 export async function Sidebar() {
