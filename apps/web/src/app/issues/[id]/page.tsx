@@ -12,7 +12,7 @@ import { GitHubSyncButton } from '@/components/github-sync-button';
 const statusLabels: Record<string, string> = {
   triage: 'คัดแยก', intent_draft: 'ร่าง Intent', intent_approved: 'Intent อนุมัติ',
   spec_draft: 'ร่าง Spec', spec_approved: 'Spec อนุมัติ', in_progress: 'กำลังพัฒนา',
-  review: 'รีวิว', done: 'เสร็จ', cancelled: 'ยกเลิก',
+  review: 'รอ Deploy', done: 'เสร็จ', cancelled: 'ยกเลิก',
 };
 
 export default async function IssueDetailPage({

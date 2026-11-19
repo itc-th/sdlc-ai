@@ -20,6 +20,7 @@
 src/
 ├── app/
 │   ├── dashboard/page.tsx          # สถิติ issue (จำนวนตามสถานะ/ประเภท/ความเสี่ยง)
+│   ├── releases/page.tsx             # หน้าจอ deploy (review → done)
 │   ├── issues/
 │   │   ├── page.tsx                # รายการ issue + filter
 │   │   ├── new/page.tsx            # สร้าง issue
@@ -82,7 +83,7 @@ drizzle/            # Migration files (0000–0003)
 src/
 ├── client.ts       # createGitHubApp() factory
 ├── installation.ts # getInstallationOctokit()
-├── issues.ts       # createGitHubIssue(), updateGitHubIssueLabels()
+├── issues.ts       # createGitHubIssue(), updateGitHubIssueLabels(), closeGitHubIssue(), createGitTag()
 ├── labels.ts       # label ↔ DB enum mapping
 ├── files.ts        # commitFileToRepo() — commit ไฟล์ไป repo
 └── webhook.ts      # verifyWebhookSignature() (HMAC SHA-256)
@@ -118,6 +119,7 @@ skills/
 | spec.create/update | | | | ✓ | ✓ |
 | spec.review | | | ✓ | ✓ | ✓ |
 | plan.create/update/review | | ✓ | ✓ | ✓ | ✓ |
+| release.deploy | | | ✓ | ✓ | ✓ |
 
 ## Issue Status Flow
 

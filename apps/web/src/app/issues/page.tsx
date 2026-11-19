@@ -13,7 +13,7 @@ const statusLabels: Record<string, string> = {
   spec_draft: 'ร่าง Spec',
   spec_approved: 'Spec อนุมัติ',
   in_progress: 'กำลังพัฒนา',
-  review: 'รีวิว',
+  review: 'รอ Deploy',
   done: 'เสร็จ',
   cancelled: 'ยกเลิก',
 };
