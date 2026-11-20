@@ -51,13 +51,23 @@ src/
 │   ├── sidebar-nav.tsx             # Client component: active route highlighting
 │   ├── loading-bar.tsx             # Client component: global navigation progress bar
 │   ├── skeleton.tsx                # Skeleton components (Page, Dashboard, Table, Detail, Form)
-│   └── ai-draft-button.tsx         # Client component ปุ่ม "ให้ AI ร่าง"
+│   ├── ai-draft-button.tsx         # Client component ปุ่ม "ให้ AI ร่าง"
+│   └── dashboard/                 # Dashboard components (summary cards, charts)
+│       ├── summary-card.tsx       # Individual KPI summary card
+│       ├── summary-cards-section.tsx # Grid wrapper for summary cards
+│       ├── charts-section.tsx     # Layout wrapper for all charts
+│       ├── line-chart-card.tsx    # Line chart (Chart.js, 'use client')
+│       ├── bar-chart-card.tsx     # Bar chart (Chart.js, 'use client')
+│       └── pie-chart-card.tsx     # Pie chart (Chart.js, 'use client')
 ├── lib/
 │   ├── auth.ts / auth.config.ts    # Auth.js v5 config
 │   ├── db.ts                       # Drizzle client singleton
 │   ├── github.ts                   # GitHub App singleton (nullable)
 │   ├── github-sync.ts              # Sync helpers (issue→GitHub, intent/spec→repo)
-│   └── roles.ts                    # RBAC permission map
+│   ├── roles.ts                    # RBAC permission map
+│   └── dashboard/                 # Dashboard data types and chart config
+│       ├── types.ts               # TypeScript interfaces for dashboard
+│       └── chart-config.ts        # Chart.js default options
 └── middleware.ts                   # Auth middleware
 ```
 
