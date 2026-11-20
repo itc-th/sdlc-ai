@@ -34,7 +34,9 @@ jobs:
       - name: Deploy to Production
         run: |
           npm i -g vercel
-          vercel deploy --prod --force --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_ORG_ID }}
+          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+          vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+          vercel deploy --prebuilt --prod --force --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Create GitHub Release
         env:
