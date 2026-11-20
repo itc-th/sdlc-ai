@@ -1,10 +1,10 @@
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { eq, and } from 'drizzle-orm';
 import { schema } from '@sdlc-ai/db';
 import { verifyWebhookSignature, gitHubLabelsToDb } from '@sdlc-ai/github';
 import { db } from '@/lib/db';
-
-export const dynamic = 'force-dynamic';
 
 interface GitHubIssueEvent {
   action: string;

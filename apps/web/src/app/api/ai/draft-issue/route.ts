@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { draftIssue } from '@sdlc-ai/agents';
 import { auth } from '@/lib/auth';
