@@ -6,6 +6,7 @@ import { auth } from '@/lib/auth';
 import { hasPermission, getUserRole } from '@/lib/roles';
 import { getGitHubApp } from '@/lib/github';
 import {
+  Octokit,
   getInstallationOctokit,
   closeGitHubIssue,
   createGitTag,
@@ -73,11 +74,22 @@ export default async function ReleasesPage() {
       await fetch(deployHookUrl, { method: 'POST' });
     }
 
-    // 2. Create Git tag (v*) + close GitHub issue (non-blocking)
+    // 2. Create Git tag (v*) + close GitHub issue
+    //    Use GitHub App if configured, otherwise fall back to GITHUB_TOKEN (PAT)
+    let octokit: Octokit | null = null;
     const app = getGitHubApp();
     if (app) {
       try {
-        const octokit = await getInstallationOctokit(app, issue.githubOwner, issue.githubRepo);
+        octokit = await getInstallationOctokit(app, issue.githubOwner, issue.githubRepo) as unknown as Octokit;
+      } catch (err) {
+        console.error('Failed to get installation octokit:', err);
+      }
+    }
+    if (!octokit && process.env.GITHUB_TOKEN) {
+      octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
+    }
+    if (octokit) {
+      try {
 
         // Find latest v* tag to auto-bump minor version
         const { data: tags } = await octokit.rest.repos.listTags({

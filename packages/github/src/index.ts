@@ -1,3 +1,4 @@
+export { Octokit } from 'octokit';
 export { createGitHubApp, type GitHubAppConfig } from './client';
 export { getInstallationOctokit } from './installation';
 export { createGitHubIssue, updateGitHubIssueLabels, closeGitHubIssue, createGitTag, type CreateIssueParams, type UpdateLabelsParams, type CloseIssueParams, type CreateTagParams } from './issues';
