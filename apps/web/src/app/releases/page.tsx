@@ -76,64 +76,68 @@ export default async function ReleasesPage() {
 
     // 2. Create Git tag (v*) + close GitHub issue
     //    Use GitHub App if configured, otherwise fall back to GITHUB_TOKEN (PAT)
-    let octokit: Octokit | null = null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let octokit: any = null;
     const app = getGitHubApp();
     if (app) {
       try {
-        octokit = await getInstallationOctokit(app, issue.githubOwner, issue.githubRepo) as unknown as Octokit;
+        octokit = await getInstallationOctokit(app, issue.githubOwner, issue.githubRepo);
+        console.log('[deploy] Using GitHub App octokit');
       } catch (err) {
-        console.error('Failed to get installation octokit:', err);
+        console.error('[deploy] Failed to get installation octokit:', err);
       }
     }
     if (!octokit && process.env.GITHUB_TOKEN) {
       octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
+      console.log('[deploy] Using GITHUB_TOKEN fallback');
+    }
+    if (!octokit) {
+      console.error('[deploy] No GitHub credentials available — skipping tag creation');
     }
     if (octokit) {
-      try {
-
-        // Find latest v* tag to auto-bump minor version
-        const { data: tags } = await octokit.rest.repos.listTags({
-          owner: issue.githubOwner,
-          repo: issue.githubRepo,
-          per_page: 100,
-        });
-        let major = 0, minor = 0;
-        for (const t of tags) {
-          const m = t.name.match(/^v(\d+)\.(\d+)\.\d+$/);
-          if (m) {
-            const tMajor = parseInt(m[1], 10);
-            const tMinor = parseInt(m[2], 10);
-            if (tMajor > major || (tMajor === major && tMinor > minor)) {
-              major = tMajor;
-              minor = tMinor;
-            }
+      // Find latest v* tag to auto-bump minor version
+      const { data: tags } = await octokit.rest.repos.listTags({
+        owner: issue.githubOwner,
+        repo: issue.githubRepo,
+        per_page: 100,
+      });
+      let major = 0, minor = 0;
+      for (const t of tags) {
+        const m = t.name.match(/^v(\d+)\.(\d+)\.\d+$/);
+        if (m) {
+          const tMajor = parseInt(m[1], 10);
+          const tMinor = parseInt(m[2], 10);
+          if (tMajor > major || (tMajor === major && tMinor > minor)) {
+            major = tMajor;
+            minor = tMinor;
           }
         }
-        const tag = `v${major}.${minor + 1}.0`;
-
-        const { data: ref } = await octokit.rest.git.getRef({
-          owner: issue.githubOwner,
-          repo: issue.githubRepo,
-          ref: 'heads/main',
-        });
-
-        await createGitTag(octokit, {
-          owner: issue.githubOwner,
-          repo: issue.githubRepo,
-          tag,
-          message: `Release for #${ghIssueNumber}: ${issue.title}`,
-          sha: ref.object.sha,
-        });
-
-        await closeGitHubIssue(octokit, {
-          owner: issue.githubOwner,
-          repo: issue.githubRepo,
-          issueNumber: ghIssueNumber,
-          comment: `Deployed and released as \`${tag}\``,
-        });
-      } catch (err) {
-        console.error('GitHub operations failed during deploy:', err);
       }
+      const tag = `v${major}.${minor + 1}.0`;
+      console.log(`[deploy] Creating tag ${tag}`);
+
+      const { data: ref } = await octokit.rest.git.getRef({
+        owner: issue.githubOwner,
+        repo: issue.githubRepo,
+        ref: 'heads/main',
+      });
+
+      await createGitTag(octokit, {
+        owner: issue.githubOwner,
+        repo: issue.githubRepo,
+        tag,
+        message: `Release for #${ghIssueNumber}: ${issue.title}`,
+        sha: ref.object.sha,
+      });
+      console.log(`[deploy] Tag ${tag} created successfully`);
+
+      await closeGitHubIssue(octokit, {
+        owner: issue.githubOwner,
+        repo: issue.githubRepo,
+        issueNumber: ghIssueNumber,
+        comment: `Deployed and released as \`${tag}\``,
+      });
+      console.log(`[deploy] GitHub issue #${ghIssueNumber} closed`);
     }
 
     // 3. Update issue status to done
