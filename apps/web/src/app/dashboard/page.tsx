@@ -1,10 +1,13 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { sql, inArray } from 'drizzle-orm';
+import { sql, inArray, gte, count } from 'drizzle-orm';
 import { schema } from '@sdlc-ai/db';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { FormLayout } from '@/components/layout/form-layout';
+import { SummaryCardsSection } from '@/components/dashboard/summary-cards-section';
+import { ChartsSection } from '@/components/dashboard/charts-section';
+import type { SummaryCardData, ChartDataPoint } from '@/lib/dashboard/types';
 
 const statusLabels: Record<string, string> = {
   triage: 'คัดแยก', intent_draft: 'ร่าง Intent', intent_approved: 'Intent อนุมัติ',
@@ -12,20 +15,13 @@ const statusLabels: Record<string, string> = {
   review: 'รีวิว', done: 'เสร็จ', cancelled: 'ยกเลิก',
 };
 
-const typeLabels: Record<string, string> = {
-  feature: 'Feature', bug: 'Bug', data_fix: 'Data Fix',
-};
-
-const riskLabels: Record<string, string> = {
-  low: 'ต่ำ', medium: 'กลาง', high: 'สูง',
-};
-
 export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user) redirect('/login');
 
-  // Run all queries in parallel
-  const [statusCounts, typeCounts, riskCounts, pendingIssues] = await Promise.all([
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+  const [statusCounts, riskCounts, trendData, pendingIssues] = await Promise.all([
     db
       .select({
         status: schema.issues.status,
@@ -33,14 +29,6 @@ export default async function DashboardPage() {
       })
       .from(schema.issues)
       .groupBy(schema.issues.status),
-    db
-      .select({
-        type: schema.issues.type,
-        count: sql<number>`count(*)::int`,
-      })
-      .from(schema.issues)
-      .where(sql`${schema.issues.type} IS NOT NULL`)
-      .groupBy(schema.issues.type),
     db
       .select({
         riskLevel: schema.issues.riskLevel,
@@ -51,12 +39,20 @@ export default async function DashboardPage() {
       .groupBy(schema.issues.riskLevel),
     db
       .select({
+        date: sql<string>`to_char(${schema.issues.createdAt}, 'MM/DD')`,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(schema.issues)
+      .where(gte(schema.issues.createdAt, thirtyDaysAgo))
+      .groupBy(sql`to_char(${schema.issues.createdAt}, 'MM/DD')`, sql`DATE(${schema.issues.createdAt})`)
+      .orderBy(sql`DATE(${schema.issues.createdAt})`),
+    db
+      .select({
         id: schema.issues.id,
         issueNumber: schema.issues.issueNumber,
         title: schema.issues.title,
         status: schema.issues.status,
         type: schema.issues.type,
-        createdAt: schema.issues.createdAt,
       })
       .from(schema.issues)
       .where(inArray(schema.issues.status, ['triage', 'in_progress']))
@@ -65,6 +61,26 @@ export default async function DashboardPage() {
   ]);
 
   const totalIssues = statusCounts.reduce((sum, r) => sum + r.count, 0);
+  const inProgressCount = statusCounts.find((r) => r.status === 'in_progress')?.count ?? 0;
+  const doneCount = statusCounts.find((r) => r.status === 'done')?.count ?? 0;
+  const reviewCount = statusCounts.find((r) => r.status === 'review')?.count ?? 0;
+
+  const summaryCards: SummaryCardData[] = [
+    { title: 'Issue ทั้งหมด', value: totalIssues, change: null, trend: 'neutral', color: 'blue' },
+    { title: 'กำลังพัฒนา', value: inProgressCount, change: null, trend: 'neutral', color: 'orange' },
+    { title: 'รอ Deploy', value: reviewCount, change: null, trend: 'neutral', color: 'purple' },
+    { title: 'เสร็จแล้ว', value: doneCount, change: null, trend: 'neutral', color: 'green' },
+  ];
+
+  const issueTrend: ChartDataPoint[] = trendData.map((d) => ({ label: d.date, value: d.count }));
+  const statusDistribution: ChartDataPoint[] = statusCounts.map((d) => ({
+    label: d.status,
+    value: d.count,
+  }));
+  const riskDistribution: ChartDataPoint[] = riskCounts.map((d) => ({
+    label: d.riskLevel!,
+    value: d.count,
+  }));
 
   return (
     <FormLayout
@@ -72,94 +88,44 @@ export default async function DashboardPage() {
       title="แดชบอร์ด"
       description="ภาพรวมสถิติเรื่องและการดำเนินงาน"
     >
-      {/* Total */}
-      <div className="mb-6 rounded border bg-gray-50 p-4 text-center">
-        <div className="text-3xl font-bold">{totalIssues}</div>
-        <div className="text-sm text-gray-500">Issue ทั้งหมด</div>
-      </div>
+      {/* Summary Cards */}
+      <SummaryCardsSection cards={summaryCards} />
 
-      {/* Status cards */}
-      <h2 className="mb-3 text-lg font-semibold">ตามสถานะ</h2>
-      <div className="mb-6 grid grid-cols-3 gap-3 sm:grid-cols-5">
-        {Object.entries(statusLabels).map(([key, label]) => {
-          const count = statusCounts.find((r) => r.status === key)?.count ?? 0;
-          return (
-            <Link
-              key={key}
-              href={`/issues?status=${key}`}
-              className="rounded border p-3 text-center hover:bg-gray-50"
-            >
-              <div className="text-xl font-bold">{count}</div>
-              <div className="text-xs text-gray-500">{label}</div>
-            </Link>
-          );
-        })}
-      </div>
-
-      {/* Type cards */}
-      <h2 className="mb-3 text-lg font-semibold">ตามประเภท</h2>
-      <div className="mb-6 grid grid-cols-3 gap-3">
-        {Object.entries(typeLabels).map(([key, label]) => {
-          const count = typeCounts.find((r) => r.type === key)?.count ?? 0;
-          return (
-            <Link
-              key={key}
-              href={`/issues?type=${key}`}
-              className="rounded border p-3 text-center hover:bg-gray-50"
-            >
-              <div className="text-xl font-bold">{count}</div>
-              <div className="text-xs text-gray-500">{label}</div>
-            </Link>
-          );
-        })}
-      </div>
-
-      {/* Risk cards */}
-      <h2 className="mb-3 text-lg font-semibold">ตามระดับความเสี่ยง</h2>
-      <div className="mb-6 grid grid-cols-3 gap-3">
-        {Object.entries(riskLabels).map(([key, label]) => {
-          const count = riskCounts.find((r) => r.riskLevel === key)?.count ?? 0;
-          return (
-            <Link
-              key={key}
-              href={`/issues?riskLevel=${key}`}
-              className="rounded border p-3 text-center hover:bg-gray-50"
-            >
-              <div className="text-xl font-bold">{count}</div>
-              <div className="text-xs text-gray-500">{label}</div>
-            </Link>
-          );
-        })}
+      {/* Charts */}
+      <div className="mt-6">
+        <ChartsSection charts={{ issueTrend, statusDistribution, riskDistribution }} />
       </div>
 
       {/* Pending issues */}
-      <h2 className="mb-3 text-lg font-semibold">Issue ที่ค้าง</h2>
-      {pendingIssues.length > 0 ? (
-        <div className="rounded border">
-          {pendingIssues.map((issue, i) => (
-            <Link
-              key={issue.id}
-              href={`/issues/${issue.id}`}
-              className={`flex items-center justify-between p-3 text-sm hover:bg-gray-50 ${i > 0 ? 'border-t' : ''}`}
-            >
-              <div>
-                <span className="text-gray-400">#{issue.issueNumber}</span>{' '}
-                {issue.title}
-              </div>
-              <div className="flex items-center gap-2">
-                {issue.type && (
-                  <span className="rounded bg-gray-100 px-2 py-0.5 text-xs">{issue.type}</span>
-                )}
-                <span className="rounded bg-gray-100 px-2 py-0.5 text-xs">
-                  {statusLabels[issue.status] ?? issue.status}
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
-      ) : (
-        <p className="text-sm text-gray-500">ไม่มี issue ค้าง</p>
-      )}
+      <div className="mt-6">
+        <h2 className="mb-3 text-lg font-semibold">Issue ที่ค้าง</h2>
+        {pendingIssues.length > 0 ? (
+          <div className="rounded border">
+            {pendingIssues.map((issue, i) => (
+              <Link
+                key={issue.id}
+                href={`/issues/${issue.id}`}
+                className={`flex items-center justify-between p-3 text-sm hover:bg-gray-50 ${i > 0 ? 'border-t' : ''}`}
+              >
+                <div>
+                  <span className="text-gray-400">#{issue.issueNumber}</span>{' '}
+                  {issue.title}
+                </div>
+                <div className="flex items-center gap-2">
+                  {issue.type && (
+                    <span className="rounded bg-gray-100 px-2 py-0.5 text-xs">{issue.type}</span>
+                  )}
+                  <span className="rounded bg-gray-100 px-2 py-0.5 text-xs">
+                    {statusLabels[issue.status] ?? issue.status}
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500">ไม่มี issue ค้าง</p>
+        )}
+      </div>
     </FormLayout>
   );
 }
