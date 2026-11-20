@@ -42,6 +42,7 @@ jobs:
           npm i -g vercel
           pnpm install --frozen-lockfile
           vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+          set -a && source .vercel/.env.preview.local && set +a
           vercel build --token=${{ secrets.VERCEL_TOKEN }}
           STAGING_URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
           echo "## 🧪 Staging Deployed" >> $GITHUB_STEP_SUMMARY
