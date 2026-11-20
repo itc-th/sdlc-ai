@@ -165,9 +165,11 @@ export async function POST(request: NextRequest) {
   } else if (action === 'closed') {
     const existing = await findIssue(project.id, issue.number);
     if (existing) {
+      // Set to 'review' (ready for deploy) instead of 'done'
+      // The releases page deploy action will set status to 'done'
       await db
         .update(schema.issues)
-        .set({ status: 'done', updatedAt: now })
+        .set({ status: 'review', updatedAt: now })
         .where(eq(schema.issues.id, existing.id));
 
       await db.insert(schema.auditLogs).values({
