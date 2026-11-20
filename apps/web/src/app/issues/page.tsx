@@ -66,7 +66,7 @@ export default async function IssuesPage({
   const issues = await db
     .select({
       id: schema.issues.id,
-      githubIssueNumber: schema.issues.githubIssueNumber,
+      issueNumber: schema.issues.issueNumber,
       title: schema.issues.title,
       type: schema.issues.type,
       riskLevel: schema.issues.riskLevel,
@@ -137,7 +137,7 @@ export default async function IssuesPage({
           <tbody>
             {issues.map((issue) => (
               <tr key={issue.id} className="border-b hover:bg-gray-50">
-                <td className="py-3 pr-4 text-gray-500">{issue.githubIssueNumber}</td>
+                <td className="py-3 pr-4 text-gray-500">{issue.issueNumber}</td>
                 <td className="py-3 pr-4">
                   <Link href={`/issues/${issue.id}`} className="text-blue-600 hover:underline">
                     {issue.title}

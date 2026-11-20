@@ -18,7 +18,7 @@ export default async function NewIntentPage({
   const { id } = await params;
 
   const issues = await db
-    .select({ id: schema.issues.id, title: schema.issues.title, githubIssueNumber: schema.issues.githubIssueNumber })
+    .select({ id: schema.issues.id, title: schema.issues.title, issueNumber: schema.issues.issueNumber })
     .from(schema.issues)
     .where(eq(schema.issues.id, id))
     .limit(1);
@@ -67,7 +67,7 @@ export default async function NewIntentPage({
     <main className="mx-auto max-w-2xl px-4 py-8">
       <div className="mb-2">
         <Link href={`/issues/${id}`} className="text-sm text-blue-600 hover:underline">
-          ← กลับไป #{issue.githubIssueNumber} {issue.title}
+          ← กลับไป #{issue.issueNumber} {issue.title}
         </Link>
       </div>
       <h1 className="mb-6 text-2xl font-bold">สร้าง Intent</h1>

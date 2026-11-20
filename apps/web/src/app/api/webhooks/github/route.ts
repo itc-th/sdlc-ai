@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
       .where(
         and(
           eq(schema.issues.projectId, project.id),
-          eq(schema.issues.githubIssueNumber, issue.number),
+          eq(schema.issues.issueNumber, issue.number),
         ),
       )
       .limit(1);
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
         .insert(schema.issues)
         .values({
           projectId: project.id,
-          githubIssueNumber: issue.number,
+          issueNumber: issue.number,
           title: issue.title,
           body: issue.body,
           reporterGithubLogin: issue.user?.login ?? null,
@@ -204,7 +204,7 @@ async function findIssue(projectId: string, issueNumber: number) {
     .where(
       and(
         eq(schema.issues.projectId, projectId),
-        eq(schema.issues.githubIssueNumber, issueNumber),
+        eq(schema.issues.issueNumber, issueNumber),
       ),
     )
     .limit(1);

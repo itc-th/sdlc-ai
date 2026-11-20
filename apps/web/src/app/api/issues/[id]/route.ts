@@ -21,7 +21,7 @@ export async function GET(
     .select({
       id: schema.issues.id,
       projectId: schema.issues.projectId,
-      githubIssueNumber: schema.issues.githubIssueNumber,
+      issueNumber: schema.issues.issueNumber,
       title: schema.issues.title,
       body: schema.issues.body,
       type: schema.issues.type,

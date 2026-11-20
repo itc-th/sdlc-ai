@@ -10,7 +10,7 @@ export const issues = pgTable(
     projectId: uuid('project_id')
       .notNull()
       .references(() => projects.id),
-    githubIssueNumber: integer('github_issue_number').notNull(),
+    issueNumber: integer('github_issue_number').notNull(),
     title: text('title').notNull(),
     body: text('body'),
     type: issueTypeEnum('type'),
@@ -23,5 +23,5 @@ export const issues = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [uniqueIndex('issues_project_number_idx').on(table.projectId, table.githubIssueNumber)],
+  (table) => [uniqueIndex('issues_project_number_idx').on(table.projectId, table.issueNumber)],
 );

@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
       riskLevel: schema.issues.riskLevel,
       status: schema.issues.status,
       githubIssueId: schema.issues.githubIssueId,
+      issueNumber: schema.issues.issueNumber,
       githubOwner: schema.projects.githubOwner,
       githubRepo: schema.projects.githubRepo,
     })
@@ -65,17 +66,41 @@ export async function POST(request: NextRequest) {
     const octokit = await getInstallationOctokit(githubApp, issue.githubOwner, issue.githubRepo);
     const labels = dbToGitHubLabels({ type: issue.type, riskLevel: issue.riskLevel, status: issue.status });
 
-    // 1. Create GitHub issue
-    const { data } = await createGitHubIssue(octokit, {
-      owner: issue.githubOwner,
-      repo: issue.githubRepo,
-      title: issue.title,
-      body: issue.body,
-      labels,
-    });
+    let ghNumber: number;
+    let githubIssueUrl: string;
 
-    const githubIssueUrl = data.html_url;
-    const ghNumber = data.number;
+    // 1. Check if a GitHub issue already exists for this issueNumber
+    let existingGhIssue: boolean = false;
+    try {
+      const { data: existing } = await octokit.rest.issues.get({
+        owner: issue.githubOwner,
+        repo: issue.githubRepo,
+        issue_number: issue.issueNumber,
+      });
+      // Issue exists on GitHub — reuse it, do NOT create a new one
+      ghNumber = existing.number;
+      githubIssueUrl = existing.html_url;
+      existingGhIssue = true;
+
+      // Update labels on the existing issue
+      await octokit.rest.issues.setLabels({
+        owner: issue.githubOwner,
+        repo: issue.githubRepo,
+        issue_number: ghNumber,
+        labels,
+      });
+    } catch {
+      // Issue does not exist on GitHub — create a new one
+      const { data } = await createGitHubIssue(octokit, {
+        owner: issue.githubOwner,
+        repo: issue.githubRepo,
+        title: issue.title,
+        body: issue.body,
+        labels,
+      });
+      ghNumber = data.number;
+      githubIssueUrl = data.html_url;
+    }
 
     // 2. Update DB with GitHub issue number
     await db
@@ -85,10 +110,10 @@ export async function POST(request: NextRequest) {
 
     await db.insert(schema.auditLogs).values({
       userId: session.user.id,
-      action: 'issue.synced_to_github',
+      action: existingGhIssue ? 'issue.linked_to_github' : 'issue.synced_to_github',
       targetType: 'issue',
       targetId: issueId,
-      metadata: { githubIssueNumber: ghNumber, githubIssueUrl },
+      metadata: { issueNumber: ghNumber, githubIssueUrl, existingGhIssue },
     });
 
     // 3. Collect approved docs into a single commit

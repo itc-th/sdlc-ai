@@ -45,7 +45,7 @@ export default async function IntentDetailPage({
 
   // Get issue info
   const issues = await db
-    .select({ githubIssueNumber: schema.issues.githubIssueNumber, title: schema.issues.title })
+    .select({ issueNumber: schema.issues.issueNumber, title: schema.issues.title })
     .from(schema.issues)
     .where(eq(schema.issues.id, id))
     .limit(1);
@@ -165,7 +165,7 @@ export default async function IntentDetailPage({
     <main className="mx-auto max-w-3xl px-4 py-8">
       <div className="mb-2">
         <Link href={`/issues/${id}`} className="text-sm text-blue-600 hover:underline">
-          ← กลับไป #{issue.githubIssueNumber} {issue.title}
+          ← กลับไป #{issue.issueNumber} {issue.title}
         </Link>
       </div>
 

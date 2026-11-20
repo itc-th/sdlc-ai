@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
   const issues = await db
     .select({
       id: schema.issues.id,
-      githubIssueNumber: schema.issues.githubIssueNumber,
+      issueNumber: schema.issues.issueNumber,
       title: schema.issues.title,
       type: schema.issues.type,
       riskLevel: schema.issues.riskLevel,
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
 
   // Auto-increment issue number within project
   const maxNumber = await db
-    .select({ max: sql<number>`coalesce(max(${schema.issues.githubIssueNumber}), 0)` })
+    .select({ max: sql<number>`coalesce(max(${schema.issues.issueNumber}), 0)` })
     .from(schema.issues)
     .where(eq(schema.issues.projectId, project[0].id));
 
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
     .insert(schema.issues)
     .values({
       projectId: project[0].id,
-      githubIssueNumber: nextNumber,
+      issueNumber: nextNumber,
       title: title.trim(),
       body: issueBody?.trim() || null,
       type: type || null,

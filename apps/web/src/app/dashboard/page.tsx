@@ -51,7 +51,7 @@ export default async function DashboardPage() {
     db
       .select({
         id: schema.issues.id,
-        githubIssueNumber: schema.issues.githubIssueNumber,
+        issueNumber: schema.issues.issueNumber,
         title: schema.issues.title,
         status: schema.issues.status,
         type: schema.issues.type,
@@ -140,7 +140,7 @@ export default async function DashboardPage() {
               className={`flex items-center justify-between p-3 text-sm hover:bg-gray-50 ${i > 0 ? 'border-t' : ''}`}
             >
               <div>
-                <span className="text-gray-400">#{issue.githubIssueNumber}</span>{' '}
+                <span className="text-gray-400">#{issue.issueNumber}</span>{' '}
                 {issue.title}
               </div>
               <div className="flex items-center gap-2">

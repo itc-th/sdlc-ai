@@ -28,7 +28,7 @@ export default async function ReleasesPage() {
   const reviewIssues = await db
     .select({
       id: schema.issues.id,
-      githubIssueNumber: schema.issues.githubIssueNumber,
+      issueNumber: schema.issues.issueNumber,
       title: schema.issues.title,
       projectId: schema.issues.projectId,
       updatedAt: schema.issues.updatedAt,
@@ -54,7 +54,7 @@ export default async function ReleasesPage() {
     const rows = await db
       .select({
         id: schema.issues.id,
-        githubIssueNumber: schema.issues.githubIssueNumber,
+        issueNumber: schema.issues.issueNumber,
         title: schema.issues.title,
         status: schema.issues.status,
         projectId: schema.issues.projectId,
@@ -80,7 +80,7 @@ export default async function ReleasesPage() {
     const app = getGitHubApp();
     if (app) {
       const octokit = await getInstallationOctokit(app, issue.githubOwner, issue.githubRepo);
-      const tag = `release-${issue.githubIssueNumber}-${slugify(issue.title)}`;
+      const tag = `release-${issue.issueNumber}-${slugify(issue.title)}`;
 
       // Get latest commit SHA from default branch
       const { data: ref } = await octokit.rest.git.getRef({
@@ -93,14 +93,14 @@ export default async function ReleasesPage() {
         owner: issue.githubOwner,
         repo: issue.githubRepo,
         tag,
-        message: `Release for #${issue.githubIssueNumber}: ${issue.title}`,
+        message: `Release for #${issue.issueNumber}: ${issue.title}`,
         sha: ref.object.sha,
       });
 
       await closeGitHubIssue(octokit, {
         owner: issue.githubOwner,
         repo: issue.githubRepo,
-        issueNumber: issue.githubIssueNumber,
+        issueNumber: issue.issueNumber,
         comment: `Deployed and released as \`${tag}\``,
       });
     }
@@ -117,7 +117,7 @@ export default async function ReleasesPage() {
       action: 'release.deploy',
       targetType: 'issue',
       targetId: issueId,
-      metadata: { githubIssueNumber: issue.githubIssueNumber },
+      metadata: { issueNumber: issue.issueNumber },
     });
 
     revalidatePath('/releases');
@@ -142,7 +142,7 @@ export default async function ReleasesPage() {
                 className="flex items-center justify-between rounded border p-4"
               >
                 <div>
-                  <span className="text-sm text-gray-400">#{issue.githubIssueNumber}</span>{' '}
+                  <span className="text-sm text-gray-400">#{issue.issueNumber}</span>{' '}
                   <span className="font-medium">{issue.title}</span>
                   <p className="mt-1 text-xs text-gray-500">
                     อัปเดตเมื่อ {new Date(issue.updatedAt).toLocaleString('th-TH')}

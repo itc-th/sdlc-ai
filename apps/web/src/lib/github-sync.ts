@@ -12,7 +12,7 @@ import { getGitHubApp } from './github';
 
 /**
  * After creating an issue in DB, sync it to GitHub.
- * Updates githubIssueNumber with the real GitHub issue number.
+ * Updates issueNumber with the real GitHub issue number.
  * Returns silently on failure (graceful degradation).
  */
 export async function syncNewIssueToGitHub(issueId: string) {
@@ -53,7 +53,7 @@ export async function syncNewIssueToGitHub(issueId: string) {
     // Update DB with real GitHub issue number
     await db
       .update(schema.issues)
-      .set({ githubIssueNumber: data.number, updatedAt: new Date() })
+      .set({ issueNumber: data.number, updatedAt: new Date() })
       .where(eq(schema.issues.id, issueId));
   } catch (error) {
     console.error('Failed to sync new issue to GitHub:', error);
@@ -71,7 +71,7 @@ export async function syncLabelsToGitHub(issueId: string) {
   try {
     const rows = await db
       .select({
-        githubIssueNumber: schema.issues.githubIssueNumber,
+        issueNumber: schema.issues.issueNumber,
         type: schema.issues.type,
         riskLevel: schema.issues.riskLevel,
         status: schema.issues.status,
@@ -92,7 +92,7 @@ export async function syncLabelsToGitHub(issueId: string) {
     await updateGitHubIssueLabels(octokit, {
       owner: issue.githubOwner,
       repo: issue.githubRepo,
-      issueNumber: issue.githubIssueNumber,
+      issueNumber: issue.issueNumber,
       labels,
     });
   } catch (error) {

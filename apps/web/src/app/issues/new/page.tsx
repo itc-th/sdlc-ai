@@ -33,7 +33,7 @@ export default async function NewIssuePage() {
     if (project.length === 0) throw new Error('Default project not found');
 
     const maxNumber = await db
-      .select({ max: sql<number>`coalesce(max(${schema.issues.githubIssueNumber}), 0)` })
+      .select({ max: sql<number>`coalesce(max(${schema.issues.issueNumber}), 0)` })
       .from(schema.issues)
       .where(eq(schema.issues.projectId, project[0].id));
 
@@ -43,7 +43,7 @@ export default async function NewIssuePage() {
       .insert(schema.issues)
       .values({
         projectId: project[0].id,
-        githubIssueNumber: nextNumber,
+        issueNumber: nextNumber,
         title,
         body,
         type: type as 'feature' | 'bug' | 'data_fix' | null,

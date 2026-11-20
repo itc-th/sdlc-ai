@@ -31,7 +31,7 @@ export default async function IssueDetailPage({
     db
       .select({
         id: schema.issues.id,
-        githubIssueNumber: schema.issues.githubIssueNumber,
+        issueNumber: schema.issues.issueNumber,
         title: schema.issues.title,
         body: schema.issues.body,
         type: schema.issues.type,
@@ -124,7 +124,7 @@ export default async function IssueDetailPage({
       </div>
       <div className="flex items-center gap-3">
         <h1 className="text-2xl font-bold">
-          <span className="text-gray-400">#{issue.githubIssueNumber}</span> {issue.title}
+          <span className="text-gray-400">#{issue.issueNumber}</span> {issue.title}
         </h1>
         <GitHubSyncButton issueId={id} githubIssueUrl={issue.githubIssueUrl} />
       </div>
