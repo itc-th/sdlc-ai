@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { sql, inArray, gte, count } from 'drizzle-orm';
+import { sql, inArray, gte } from 'drizzle-orm';
 import { schema } from '@sdlc-ai/db';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';

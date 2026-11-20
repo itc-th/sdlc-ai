@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { NextResponse } from 'next/server';
 import { eq, isNull, and } from 'drizzle-orm';
 import { schema } from '@sdlc-ai/db';
