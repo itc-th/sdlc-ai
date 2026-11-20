@@ -6,6 +6,7 @@ import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { hasPermission, getUserRole } from '@/lib/roles';
 import { AiDraftButton } from '@/components/ai-draft-button';
+import { FormLayout } from '@/components/layout/form-layout';
 
 export default async function NewIntentPage({
   params,
@@ -64,13 +65,16 @@ export default async function NewIntentPage({
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-8">
-      <div className="mb-2">
-        <Link href={`/issues/${id}`} className="text-sm text-blue-600 hover:underline">
-          ← กลับไป #{issue.issueNumber} {issue.title}
-        </Link>
-      </div>
-      <h1 className="mb-6 text-2xl font-bold">สร้าง Intent</h1>
+    <FormLayout
+      breadcrumbs={[
+        { label: 'หน้าแรก', href: '/dashboard' },
+        { label: 'เรื่อง', href: '/issues' },
+        { label: `#${issue.issueNumber} ${issue.title}`, href: `/issues/${id}` },
+        { label: 'สร้าง Intent' },
+      ]}
+      title="สร้าง Intent"
+      description={`สำหรับเรื่อง #${issue.issueNumber} ${issue.title}`}
+    >
       <form action={createIntent} className="flex flex-col gap-4">
         <div>
           <div className="mb-1 flex items-center justify-between">
@@ -105,6 +109,6 @@ export default async function NewIntentPage({
           </Link>
         </div>
       </form>
-    </main>
+    </FormLayout>
   );
 }

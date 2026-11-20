@@ -11,6 +11,7 @@ import {
   createGitTag,
 } from '@sdlc-ai/github';
 import { revalidatePath } from 'next/cache';
+import { FormLayout } from '@/components/layout/form-layout';
 
 function slugify(text: string): string {
   return text
@@ -126,8 +127,14 @@ export default async function ReleasesPage() {
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold">Releases</h1>
+    <FormLayout
+      breadcrumbs={[
+        { label: 'หน้าแรก', href: '/dashboard' },
+        { label: 'Releases' },
+      ]}
+      title="Releases"
+      description="จัดการและ deploy เรื่องที่พร้อมใช้งาน"
+    >
 
       <section>
         <h2 className="mb-4 text-lg font-semibold">รอ Deploy ({reviewIssues.length})</h2>
@@ -164,6 +171,6 @@ export default async function ReleasesPage() {
           </div>
         )}
       </section>
-    </main>
+    </FormLayout>
   );
 }

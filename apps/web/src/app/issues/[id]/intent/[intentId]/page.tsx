@@ -6,6 +6,7 @@ import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { hasPermission, getUserRole } from '@/lib/roles';
 import { syncIntentToGitHub } from '@/lib/github-sync';
+import { FormLayout } from '@/components/layout/form-layout';
 
 const decisionLabels: Record<string, string> = {
   approved: 'อนุมัติ',
@@ -162,15 +163,16 @@ export default async function IntentDetailPage({
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8">
-      <div className="mb-2">
-        <Link href={`/issues/${id}`} className="text-sm text-blue-600 hover:underline">
-          ← กลับไป #{issue.issueNumber} {issue.title}
-        </Link>
-      </div>
-
+    <FormLayout
+      breadcrumbs={[
+        { label: 'หน้าแรก', href: '/dashboard' },
+        { label: 'เรื่อง', href: '/issues' },
+        { label: `#${issue.issueNumber} ${issue.title}`, href: `/issues/${id}` },
+        { label: 'Intent' },
+      ]}
+      title="Intent"
+    >
       <div className="flex items-center gap-3">
-        <h1 className="text-2xl font-bold">Intent</h1>
         <span className={`rounded px-2 py-0.5 text-xs font-medium ${
           intent.status === 'approved' ? 'bg-green-100 text-green-800' :
           intent.status === 'rejected' ? 'bg-red-100 text-red-800' :
@@ -327,6 +329,6 @@ export default async function IntentDetailPage({
           </div>
         </div>
       )}
-    </main>
+    </FormLayout>
   );
 }
