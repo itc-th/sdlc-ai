@@ -13,14 +13,6 @@ import {
 import { revalidatePath } from 'next/cache';
 import { FormLayout } from '@/components/layout/form-layout';
 
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 40);
-}
-
 export default async function ReleasesPage() {
   const session = await auth();
   if (!session?.user?.id) redirect('/login');
@@ -81,12 +73,31 @@ export default async function ReleasesPage() {
       await fetch(deployHookUrl, { method: 'POST' });
     }
 
-    // 2. Create Git tag + close GitHub issue (non-blocking)
+    // 2. Create Git tag (v*) + close GitHub issue (non-blocking)
     const app = getGitHubApp();
     if (app) {
       try {
         const octokit = await getInstallationOctokit(app, issue.githubOwner, issue.githubRepo);
-        const tag = `release-${issue.issueNumber}-${slugify(issue.title)}`;
+
+        // Find latest v* tag to auto-bump minor version
+        const { data: tags } = await octokit.rest.repos.listTags({
+          owner: issue.githubOwner,
+          repo: issue.githubRepo,
+          per_page: 100,
+        });
+        let major = 0, minor = 0;
+        for (const t of tags) {
+          const m = t.name.match(/^v(\d+)\.(\d+)\.\d+$/);
+          if (m) {
+            const tMajor = parseInt(m[1], 10);
+            const tMinor = parseInt(m[2], 10);
+            if (tMajor > major || (tMajor === major && tMinor > minor)) {
+              major = tMajor;
+              minor = tMinor;
+            }
+          }
+        }
+        const tag = `v${major}.${minor + 1}.0`;
 
         const { data: ref } = await octokit.rest.git.getRef({
           owner: issue.githubOwner,
