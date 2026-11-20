@@ -56,6 +56,7 @@ export default async function ReleasesPage() {
       .select({
         id: schema.issues.id,
         issueNumber: schema.issues.issueNumber,
+        githubIssueId: schema.issues.githubIssueId,
         title: schema.issues.title,
         status: schema.issues.status,
         projectId: schema.issues.projectId,
@@ -71,39 +72,45 @@ export default async function ReleasesPage() {
     const issue = rows[0];
     if (issue.status !== 'review') throw new Error('issue ไม่อยู่ในสถานะ review');
 
+    // Use githubIssueId for GitHub operations (may differ from issueNumber)
+    const ghIssueNumber = issue.githubIssueId ?? issue.issueNumber;
+
     // 1. Trigger Vercel Deploy Hook
     const deployHookUrl = process.env.VERCEL_DEPLOY_HOOK_URL;
     if (deployHookUrl) {
       await fetch(deployHookUrl, { method: 'POST' });
     }
 
-    // 2. Create Git tag + close GitHub issue
+    // 2. Create Git tag + close GitHub issue (non-blocking)
     const app = getGitHubApp();
     if (app) {
-      const octokit = await getInstallationOctokit(app, issue.githubOwner, issue.githubRepo);
-      const tag = `release-${issue.issueNumber}-${slugify(issue.title)}`;
+      try {
+        const octokit = await getInstallationOctokit(app, issue.githubOwner, issue.githubRepo);
+        const tag = `release-${issue.issueNumber}-${slugify(issue.title)}`;
 
-      // Get latest commit SHA from default branch
-      const { data: ref } = await octokit.rest.git.getRef({
-        owner: issue.githubOwner,
-        repo: issue.githubRepo,
-        ref: 'heads/main',
-      });
+        const { data: ref } = await octokit.rest.git.getRef({
+          owner: issue.githubOwner,
+          repo: issue.githubRepo,
+          ref: 'heads/main',
+        });
 
-      await createGitTag(octokit, {
-        owner: issue.githubOwner,
-        repo: issue.githubRepo,
-        tag,
-        message: `Release for #${issue.issueNumber}: ${issue.title}`,
-        sha: ref.object.sha,
-      });
+        await createGitTag(octokit, {
+          owner: issue.githubOwner,
+          repo: issue.githubRepo,
+          tag,
+          message: `Release for #${ghIssueNumber}: ${issue.title}`,
+          sha: ref.object.sha,
+        });
 
-      await closeGitHubIssue(octokit, {
-        owner: issue.githubOwner,
-        repo: issue.githubRepo,
-        issueNumber: issue.issueNumber,
-        comment: `Deployed and released as \`${tag}\``,
-      });
+        await closeGitHubIssue(octokit, {
+          owner: issue.githubOwner,
+          repo: issue.githubRepo,
+          issueNumber: ghIssueNumber,
+          comment: `Deployed and released as \`${tag}\``,
+        });
+      } catch (err) {
+        console.error('GitHub operations failed during deploy:', err);
+      }
     }
 
     // 3. Update issue status to done
