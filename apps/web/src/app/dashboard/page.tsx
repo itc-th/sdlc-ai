@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { eq, sql, inArray } from 'drizzle-orm';
+import { sql, inArray } from 'drizzle-orm';
 import { schema } from '@sdlc-ai/db';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { FormLayout } from '@/components/layout/form-layout';
 
 const statusLabels: Record<string, string> = {
   triage: 'คัดแยก', intent_draft: 'ร่าง Intent', intent_approved: 'Intent อนุมัติ',
@@ -66,9 +67,11 @@ export default async function DashboardPage() {
   const totalIssues = statusCounts.reduce((sum, r) => sum + r.count, 0);
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold">Dashboard</h1>
-
+    <FormLayout
+      breadcrumbs={[{ label: 'หน้าแรก' }]}
+      title="แดชบอร์ด"
+      description="ภาพรวมสถิติเรื่องและการดำเนินงาน"
+    >
       {/* Total */}
       <div className="mb-6 rounded border bg-gray-50 p-4 text-center">
         <div className="text-3xl font-bold">{totalIssues}</div>
@@ -157,6 +160,6 @@ export default async function DashboardPage() {
       ) : (
         <p className="text-sm text-gray-500">ไม่มี issue ค้าง</p>
       )}
-    </main>
+    </FormLayout>
   );
 }

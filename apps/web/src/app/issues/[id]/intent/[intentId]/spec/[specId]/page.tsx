@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { redirect, notFound } from 'next/navigation';
 import { eq, desc } from 'drizzle-orm';
 import { schema } from '@sdlc-ai/db';
@@ -6,6 +5,7 @@ import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { hasPermission, getUserRole } from '@/lib/roles';
 import { syncSpecToGitHub } from '@/lib/github-sync';
+import { FormLayout } from '@/components/layout/form-layout';
 
 const decisionLabels: Record<string, string> = {
   approved: 'อนุมัติ',
@@ -149,15 +149,17 @@ export default async function SpecDetailPage({
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8">
-      <div className="mb-2">
-        <Link href={`/issues/${id}/intent/${intentId}`} className="text-sm text-blue-600 hover:underline">
-          ← กลับไป Intent ของ #{issue.issueNumber}
-        </Link>
-      </div>
-
+    <FormLayout
+      breadcrumbs={[
+        { label: 'หน้าแรก', href: '/dashboard' },
+        { label: 'เรื่อง', href: '/issues' },
+        { label: `#${issue.issueNumber}`, href: `/issues/${id}` },
+        { label: 'Intent', href: `/issues/${id}/intent/${intentId}` },
+        { label: 'Spec' },
+      ]}
+      title="Spec"
+    >
       <div className="flex items-center gap-3">
-        <h1 className="text-2xl font-bold">Spec</h1>
         <span className={`rounded px-2 py-0.5 text-xs font-medium ${
           spec.status === 'approved' ? 'bg-green-100 text-green-800' :
           spec.status === 'rejected' ? 'bg-red-100 text-red-800' :
@@ -270,6 +272,6 @@ export default async function SpecDetailPage({
           </div>
         </div>
       )}
-    </main>
+    </FormLayout>
   );
 }

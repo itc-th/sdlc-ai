@@ -1,10 +1,10 @@
-import Link from 'next/link';
 import { redirect, notFound } from 'next/navigation';
 import { eq, desc } from 'drizzle-orm';
 import { schema } from '@sdlc-ai/db';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { syncPlanToGitHub } from '@/lib/github-sync';
+import { FormLayout } from '@/components/layout/form-layout';
 
 const decisionLabels: Record<string, string> = {
   approved: 'อนุมัติ',
@@ -135,15 +135,16 @@ export default async function PlanDetailPage({
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8">
-      <div className="mb-2">
-        <Link href={`/issues/${id}`} className="text-sm text-blue-600 hover:underline">
-          ← กลับไป #{issue.issueNumber} {issue.title}
-        </Link>
-      </div>
-
+    <FormLayout
+      breadcrumbs={[
+        { label: 'หน้าแรก', href: '/dashboard' },
+        { label: 'เรื่อง', href: '/issues' },
+        { label: `#${issue.issueNumber} ${issue.title}`, href: `/issues/${id}` },
+        { label: 'แผนการแก้โค้ด' },
+      ]}
+      title="แผนการแก้โค้ด"
+    >
       <div className="flex items-center gap-3">
-        <h1 className="text-2xl font-bold">แผนการแก้โค้ด</h1>
         <span className={`rounded px-2 py-0.5 text-xs font-medium ${
           plan.status === 'approved' ? 'bg-green-100 text-green-800' :
           plan.status === 'rejected' ? 'bg-red-100 text-red-800' :
@@ -239,6 +240,6 @@ export default async function PlanDetailPage({
           </div>
         </div>
       )}
-    </main>
+    </FormLayout>
   );
 }

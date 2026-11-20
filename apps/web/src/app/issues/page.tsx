@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { hasPermission, getUserRole } from '@/lib/roles';
+import { FormLayout } from '@/components/layout/form-layout';
 
 const statusLabels: Record<string, string> = {
   triage: 'คัดแยก',
@@ -80,18 +81,24 @@ export default async function IssuesPage({
     .orderBy(desc(schema.issues.createdAt));
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Issues</h1>
-        {hasPermission(role, 'issue.create') && (
+    <FormLayout
+      breadcrumbs={[
+        { label: 'หน้าแรก', href: '/dashboard' },
+        { label: 'เรื่อง' },
+      ]}
+      title="รายการเรื่อง"
+      description="จัดการและติดตามสถานะเรื่องทั้งหมด"
+      actions={
+        hasPermission(role, 'issue.create') ? (
           <Link
             href="/issues/new"
             className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
           >
             สร้างเรื่องใหม่
           </Link>
-        )}
-      </div>
+        ) : undefined
+      }
+    >
 
       {/* Filters */}
       <form className="mb-6 flex gap-3">
@@ -169,6 +176,6 @@ export default async function IssuesPage({
           </tbody>
         </table>
       )}
-    </main>
+    </FormLayout>
   );
 }

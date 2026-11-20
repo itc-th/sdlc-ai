@@ -8,6 +8,7 @@ import { syncLabelsToGitHub } from '@/lib/github-sync';
 import { hasPermission, getUserRole } from '@/lib/roles';
 import { AiTriageButton } from '@/components/ai-triage-button';
 import { GitHubSyncButton } from '@/components/github-sync-button';
+import { FormLayout } from '@/components/layout/form-layout';
 
 const statusLabels: Record<string, string> = {
   triage: 'คัดแยก', intent_draft: 'ร่าง Intent', intent_approved: 'Intent อนุมัติ',
@@ -118,16 +119,15 @@ export default async function IssueDetailPage({
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8">
-      <div className="mb-2">
-        <Link href="/issues" className="text-sm text-blue-600 hover:underline">← กลับไปรายการ</Link>
-      </div>
-      <div className="flex items-center gap-3">
-        <h1 className="text-2xl font-bold">
-          <span className="text-gray-400">#{issue.issueNumber}</span> {issue.title}
-        </h1>
-        <GitHubSyncButton issueId={id} githubIssueUrl={issue.githubIssueUrl} />
-      </div>
+    <FormLayout
+      breadcrumbs={[
+        { label: 'หน้าแรก', href: '/dashboard' },
+        { label: 'เรื่อง', href: '/issues' },
+        { label: `#${issue.issueNumber} ${issue.title}` },
+      ]}
+      title={`#${issue.issueNumber} ${issue.title}`}
+      actions={<GitHubSyncButton issueId={id} githubIssueUrl={issue.githubIssueUrl} />}
+    >
       <div className="mt-2 flex gap-2 text-xs">
         <span className="rounded bg-gray-100 px-2 py-0.5">
           {statusLabels[issue.status] ?? issue.status}
@@ -286,6 +286,6 @@ export default async function IssueDetailPage({
           )}
         </div>
       )}
-    </main>
+    </FormLayout>
   );
 }

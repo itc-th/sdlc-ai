@@ -6,6 +6,7 @@ import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { hasPermission, getUserRole } from '@/lib/roles';
 import { AiDraftButton } from '@/components/ai-draft-button';
+import { FormLayout } from '@/components/layout/form-layout';
 
 export default async function NewSpecPage({
   params,
@@ -77,13 +78,17 @@ export default async function NewSpecPage({
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-8">
-      <div className="mb-2">
-        <Link href={`/issues/${id}/intent/${intentId}`} className="text-sm text-blue-600 hover:underline">
-          ← กลับไป Intent ของ #{issue.issueNumber}
-        </Link>
-      </div>
-      <h1 className="mb-6 text-2xl font-bold">สร้าง Spec</h1>
+    <FormLayout
+      breadcrumbs={[
+        { label: 'หน้าแรก', href: '/dashboard' },
+        { label: 'เรื่อง', href: '/issues' },
+        { label: `#${issue.issueNumber}`, href: `/issues/${id}` },
+        { label: 'Intent', href: `/issues/${id}/intent/${intentId}` },
+        { label: 'สร้าง Spec' },
+      ]}
+      title="สร้าง Spec"
+      description={`สำหรับเรื่อง #${issue.issueNumber} ${issue.title}`}
+    >
       <form action={createSpec} className="flex flex-col gap-4">
         <div>
           <div className="mb-1 flex items-center justify-between">
@@ -118,6 +123,6 @@ export default async function NewSpecPage({
           </Link>
         </div>
       </form>
-    </main>
+    </FormLayout>
   );
 }
