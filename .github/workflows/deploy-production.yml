@@ -30,26 +30,15 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
 
       - name: Deploy to Production
+        env:
+          VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
+          VERCEL_GIT_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          VERCEL_GIT_COMMIT_AUTHOR_LOGIN: ${{ github.actor }}
         run: |
           npm i -g vercel
-          pnpm install --frozen-lockfile
-          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-          # Copy env vars so Next.js can read them during build
-          cp .vercel/.env.production.local apps/web/.env.local
-          echo "--- DEBUG: env file format ---"
-          wc -l apps/web/.env.local || true
-          head -c 200 apps/web/.env.local | sed 's/postgresql:\/\/[^"]*/***/g' || true
-          echo ""
-          echo "--- END DEBUG ---"
-          vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-          vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+          vercel deploy --prod --force --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Create GitHub Release
         env:

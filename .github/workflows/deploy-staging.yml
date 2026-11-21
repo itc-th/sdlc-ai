@@ -31,20 +31,15 @@ jobs:
     needs: ci
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
 
       - name: Deploy to Staging
+        env:
+          VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
+          VERCEL_GIT_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          VERCEL_GIT_COMMIT_AUTHOR_LOGIN: ${{ github.actor }}
         run: |
           npm i -g vercel
-          pnpm install --frozen-lockfile
-          vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
-          cp .vercel/.env.preview.local apps/web/.env.local
-          vercel build --token=${{ secrets.VERCEL_TOKEN }}
-          STAGING_URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+          STAGING_URL=$(vercel deploy --force --token=${{ secrets.VERCEL_TOKEN }})
           echo "## 🧪 Staging Deployed" >> $GITHUB_STEP_SUMMARY
           echo "URL: $STAGING_URL" >> $GITHUB_STEP_SUMMARY
 
