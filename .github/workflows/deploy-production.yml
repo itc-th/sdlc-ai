@@ -43,9 +43,10 @@ jobs:
           vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
           # Copy env vars so Next.js can read them during build
           cp .vercel/.env.production.local apps/web/.env.local
-          echo "--- DEBUG: env vars available ---"
-          grep -c "=" apps/web/.env.local || true
-          grep "^DATABASE_URL" apps/web/.env.local | sed 's/=.*/=***/' || true
+          echo "--- DEBUG: env file format ---"
+          wc -l apps/web/.env.local || true
+          head -c 200 apps/web/.env.local | sed 's/postgresql:\/\/[^"]*/***/g' || true
+          echo ""
           echo "--- END DEBUG ---"
           vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
           vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
