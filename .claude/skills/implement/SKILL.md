@@ -9,6 +9,15 @@ description: เขียนโค้ดตาม plan ที่อนุมั�
 
 ## ขั้นตอน
 
+### 0. ดึงโค้ดล่าสุด
+
+```bash
+git checkout main
+git pull origin main
+```
+
+ต้อง pull ก่อนเสมอ เพื่อให้ได้เอกสาร intent/spec/plan ล่าสุดที่อาจถูก push มาจาก web app
+
 ### 1. อ่านเอกสาร
 
 ```bash

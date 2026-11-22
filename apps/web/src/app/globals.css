@@ -71,3 +71,11 @@ body {
   color: var(--color-surface-900);
   background-color: var(--color-surface-50);
 }
+
+/* Respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin,
+  .animate-pulse {
+    animation: none;
+  }
+}
