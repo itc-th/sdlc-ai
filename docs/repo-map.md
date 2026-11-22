@@ -50,7 +50,10 @@ src/
 │   ├── sidebar.tsx                 # Sidebar (server component: logo, menu, user)
 │   ├── sidebar-nav.tsx             # Client component: active route highlighting
 │   ├── loading-bar.tsx             # Client component: global navigation progress bar
-│   ├── skeleton.tsx                # Skeleton components (Page, Dashboard, Table, Detail, Form)
+│   ├── skeleton.tsx                # Skeleton components (Page, Dashboard, Table, Detail, Form, Release)
+│   ├── ui/
+│   │   ├── loading-spinner.tsx    # Reusable loading spinner (SVG, 3 sizes, a11y)
+│   │   └── loading-skeleton.tsx   # Reusable skeleton (row/card/text/circle variants)
 │   ├── ai-draft-button.tsx         # Client component ปุ่ม "ให้ AI ร่าง"
 │   └── dashboard/                 # Dashboard components (summary cards, charts)
 │       ├── summary-card.tsx       # Individual KPI summary card
