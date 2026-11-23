@@ -33,11 +33,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Deploy to Staging
-        env:
-          VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
-          VERCEL_GIT_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
           npm i -g vercel
+          rm -rf .git
           STAGING_URL=$(vercel deploy --force --token=${{ secrets.VERCEL_TOKEN }})
           echo "## 🧪 Staging Deployed" >> $GITHUB_STEP_SUMMARY
           echo "URL: $STAGING_URL" >> $GITHUB_STEP_SUMMARY
