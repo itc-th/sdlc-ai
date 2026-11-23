@@ -34,8 +34,8 @@ jobs:
       - name: Deploy to Production
         run: |
           npm i -g vercel
-          rm -rf .git
-          vercel deploy --prod --force --token=${{ secrets.VERCEL_TOKEN }}
+          cp -r . /tmp/deploy && rm -rf /tmp/deploy/.git
+          cd /tmp/deploy && vercel deploy --prod --force --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Create GitHub Release
         env:
