@@ -6,6 +6,7 @@ import { auth } from '@/lib/auth';
 import { hasPermission, getUserRole } from '@/lib/roles';
 import { syncSpecToGitHub } from '@/lib/github-sync';
 import { FormLayout } from '@/components/layout/form-layout';
+import { MarkdownContent } from '@/components/markdown-content';
 
 const decisionLabels: Record<string, string> = {
   approved: 'อนุมัติ',
@@ -193,8 +194,8 @@ export default async function SpecDetailPage({
           </button>
         </form>
       ) : (
-        <div className="mt-6 rounded border p-4 text-sm font-mono whitespace-pre-wrap">
-          {spec.content ?? '(ไม่มีเนื้อหา)'}
+        <div className="mt-6 rounded border p-4">
+          <MarkdownContent content={spec.content} />
         </div>
       )}
 
