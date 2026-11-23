@@ -17,17 +17,20 @@
     "@sdlc-ai/github": "workspace:^",
     "chart.js": "^4.6.1",
     "drizzle-orm": "^0.38",
+    "marked": "^18.2.1",
     "next": "^15",
     "next-auth": "5.0.0-beta.32",
     "react": "^19",
     "react-chartjs-2": "^5.3.1",
-    "react-dom": "^19"
+    "react-dom": "^19",
+    "sanitize-html": "^2.18.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/sanitize-html": "^2.16.2",
     "eslint": "^9",
     "eslint-config-next": "^15",
     "tailwindcss": "^4",

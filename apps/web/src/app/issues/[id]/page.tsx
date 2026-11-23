@@ -9,6 +9,7 @@ import { hasPermission, getUserRole } from '@/lib/roles';
 import { AiTriageButton } from '@/components/ai-triage-button';
 import { GitHubSyncButton } from '@/components/github-sync-button';
 import { FormLayout } from '@/components/layout/form-layout';
+import { MarkdownContent } from '@/components/markdown-content';
 
 const statusLabels: Record<string, string> = {
   triage: 'คัดแยก', intent_draft: 'ร่าง Intent', intent_approved: 'Intent อนุมัติ',
@@ -137,8 +138,8 @@ export default async function IssueDetailPage({
       </div>
 
       {issue.body && (
-        <div className="mt-6 rounded border p-4 text-sm whitespace-pre-wrap">
-          {issue.body}
+        <div className="mt-6 rounded border p-4">
+          <MarkdownContent content={issue.body} />
         </div>
       )}
 
