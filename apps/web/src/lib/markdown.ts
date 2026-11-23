@@ -1,5 +1,5 @@
 import { marked } from 'marked';
-import { sanitize } from 'isomorphic-dompurify';
+import sanitizeHtml from 'sanitize-html';
 
 // Configure marked options
 marked.setOptions({
@@ -16,8 +16,8 @@ export function renderMarkdown(markdownText: string | null | undefined): string 
   try {
     const rawHtml = marked.parse(markdownText) as string;
 
-    const cleanHtml = sanitize(rawHtml, {
-      ALLOWED_TAGS: [
+    const cleanHtml = sanitizeHtml(rawHtml, {
+      allowedTags: [
         'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
         'p', 'br', 'strong', 'em', 'del', 'code', 'pre',
         'ul', 'ol', 'li',
@@ -25,12 +25,15 @@ export function renderMarkdown(markdownText: string | null | undefined): string 
         'table', 'thead', 'tbody', 'tr', 'th', 'td',
         'blockquote', 'hr', 'span', 'div',
       ],
-      ALLOWED_ATTR: [
-        'href', 'title', 'target', 'rel',
-        'src', 'alt', 'width', 'height',
-        'class', 'id', 'align',
-      ],
-      ALLOW_DATA_ATTR: false,
+      allowedAttributes: {
+        a: ['href', 'title', 'target', 'rel'],
+        img: ['src', 'alt', 'width', 'height'],
+        code: ['class'],
+        pre: ['class'],
+        td: ['align'],
+        th: ['align'],
+      },
+      allowedSchemes: ['http', 'https', 'mailto'],
     });
 
     return cleanHtml;
