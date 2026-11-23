@@ -2,6 +2,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   transpilePackages: ['@sdlc-ai/db', '@sdlc-ai/github', '@sdlc-ai/agents'],
+  serverExternalPackages: ['isomorphic-dompurify', 'jsdom'],
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'avatars.githubusercontent.com' },

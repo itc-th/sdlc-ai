@@ -1,5 +1,5 @@
 import { marked } from 'marked';
-import DOMPurify from 'isomorphic-dompurify';
+import { sanitize } from 'isomorphic-dompurify';
 
 // Configure marked options
 marked.setOptions({
@@ -16,7 +16,7 @@ export function renderMarkdown(markdownText: string | null | undefined): string 
   try {
     const rawHtml = marked.parse(markdownText) as string;
 
-    const cleanHtml = DOMPurify.sanitize(rawHtml, {
+    const cleanHtml = sanitize(rawHtml, {
       ALLOWED_TAGS: [
         'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
         'p', 'br', 'strong', 'em', 'del', 'code', 'pre',
