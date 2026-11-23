@@ -35,7 +35,6 @@ jobs:
         env:
           VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
           VERCEL_GIT_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
-          VERCEL_GIT_COMMIT_AUTHOR_LOGIN: ${{ github.actor }}
         run: |
           npm i -g vercel
           vercel deploy --prod --force --token=${{ secrets.VERCEL_TOKEN }}
